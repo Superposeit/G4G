@@ -52,7 +52,9 @@ export default function ModelSelector({
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
-  const selectedSelection = allowSystemDefault ? value : value ?? activeDefault;
+  const selectedSelection = allowSystemDefault
+    ? value
+    : (value ?? activeDefault);
   const selectedKey = llmSelectionKey(selectedSelection);
   const selectedOption = useMemo(
     () =>
@@ -137,6 +139,7 @@ export default function ModelSelector({
         : options.length === 0
           ? t("No configured models")
           : t("Choose a model");
+
 
   return (
     <div className="relative">
