@@ -130,6 +130,7 @@ export default function ModelSelector({
       : allowSystemDefault && !selectedSelection
         ? defaultLabel
         : selectedOption?.model_name || t("Select model");
+<<<<<<< HEAD
   const detail = selectedOption
     ? `${selectedOption.profile_name} | ${providerLabel(selectedOption)}`
     : allowSystemDefault && !selectedSelection
@@ -140,6 +141,19 @@ export default function ModelSelector({
           ? t("No configured models")
           : t("Choose a model");
 
+=======
+  const detail = (() => {
+    if (selectedOption) {
+      return `${selectedOption.profile_name} | ${providerLabel(selectedOption)}`;
+    }
+    if (allowSystemDefault && !selectedSelection) return defaultDetail;
+    if (error) return t("Could not load models");
+    if (options.length === 0) return t("No configured models");
+    return t("Choose a model");
+  })();
+  const menuPlacementClass =
+    placement === "bottom" ? "top-full mt-1.5" : "bottom-full mb-1.5";
+>>>>>>> 72bcdd7 (prepare v1.3.9 release)
 
   return (
     <div className="relative">
