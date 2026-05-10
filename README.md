@@ -35,6 +35,8 @@
 
 ### 📦 Releases
 
+> **[2026.5.10]** [v1.3.10](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.10) — Remote Docker CORS recovery, `DISABLE_SSL_VERIFY` across SDK providers, safer code-block citations, and optional Matrix E2EE add-on.
+
 > **[2026.5.9]** [v1.3.9](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.9) — TutorBot Zulip and NVIDIA NIM support, safer thinking-model routing, `deeptutor start`, sidebar tooltips, and session-store parity.
 
 > **[2026.5.8]** [v1.3.8](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.8) — Optional multi-user deployments with isolated user workspaces, admin grants, auth routes, and scoped runtime access.
@@ -55,12 +57,12 @@
 
 > **[2026.4.27]** [v1.3.0](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.0) — Versioned KB indexes with re-index workflow, rebuilt Knowledge workspace, embedding auto-discovery with new adapters, Space hub.
 
+<details>
+<summary><b>Past releases (more than 2 weeks ago)</b></summary>
+
 > **[2026.4.25]** [v1.2.5](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.5) — Persistent chat attachments with file-preview drawer, attachment-aware capability pipelines, TutorBot Markdown export.
 
 > **[2026.4.25]** [v1.2.4](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.4) — Text/code/SVG attachments, one-command Setup Tour, Markdown chat export, compact KB management UI.
-
-<details>
-<summary><b>Past releases (more than 2 weeks ago)</b></summary>
 
 > **[2026.4.24]** [v1.2.3](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.3) — Document attachments (PDF/DOCX/XLSX/PPTX), reasoning thinking-block display, Soul template editor, Co-Writer save-to-notebook.
 
@@ -206,7 +208,7 @@ During the install step, the tour asks which dependency profile you want:
 |:---|:---|:---|
 | Web app (recommended) | CLI + API server + RAG/document parsing | Most first-time users |
 | Web + TutorBot | Adds TutorBot engine and common channel SDKs | If you want autonomous tutor bots or channel integrations |
-| Web + TutorBot + Matrix | Adds Matrix / Element channel support | Only if you already have `libolm` installed or are ready to install it |
+| Web + TutorBot + Matrix | Adds Matrix / Element channel support without E2EE | If you need Matrix/Element rooms; install `matrix-e2e` only for encrypted rooms |
 | Math Animator add-on | Installs Manim separately | Only if you need animation generation and have LaTeX/ffmpeg/system build tools ready |
 
 Once the wizard finishes:
@@ -267,7 +269,8 @@ python -m pip install -e ".[server]"
 
 # Optional add-ons — install only the ones you need:
 #   python -m pip install -e ".[tutorbot]"       # TutorBot engine + channel SDKs
-#   python -m pip install -e ".[tutorbot,matrix]" # TutorBot + Matrix channel; requires libolm
+#   python -m pip install -e ".[tutorbot,matrix]" # TutorBot + Matrix channel without E2EE/libolm
+#   python -m pip install -e ".[matrix-e2e]"      # Optional encrypted Matrix rooms; requires libolm
 #   python -m pip install -e ".[math-animator]"  # Manim; also requires LaTeX/ffmpeg/system build tools
 #   python -m pip install -e ".[all]"            # Everything above + dev tools
 
@@ -440,7 +443,217 @@ Once the containers are running:
 - The **Frontend (Voice UI)** will be accessible.
 - The **Backend API** will serve requests using the local models.
 
+<<<<<<< HEAD
 *(Note: On first run, it may take a few minutes to download the models.)*
+=======
+**3. Verify & manage**
+
+Open [http://localhost:3782](http://localhost:3782) once the container is healthy.
+
+```bash
+docker compose logs -f   # tail logs
+docker compose down       # stop and remove container
+```
+
+<details>
+<summary><b>Cloud / remote server deployment</b></summary>
+
+When deploying to a remote server, the browser needs to know the public URL of the backend API. Add one more variable to your `.env`:
+
+```dotenv
+# Set to the public URL where the backend is reachable
+NEXT_PUBLIC_API_BASE_EXTERNAL=https://your-server.com:8001
+```
+
+The frontend startup script applies this value at runtime — no rebuild needed.
+
+</details>
+
+<details>
+<summary><b>Authentication (public deployments)</b></summary>
+
+Authentication is **disabled by default** — no login is required on localhost. For multi-tenant deployments (per-user workspaces, admin-curated models / KBs / skills, audit log), see the dedicated [Multi-User](#-multi-user--shared-deployments-with-per-user-workspaces) section below for the full setup, env-var reference, and operational caveats.
+
+**Headless single-user (no `/register` flow):** if you can't reach the browser to bootstrap the first admin (e.g. an unattended container), pre-seed the credential via env vars:
+
+```bash
+# Generate a bcrypt hash on any host with the project checked out:
+python -c "from deeptutor.services.auth import hash_password; print(hash_password('yourpassword'))"
+```
+
+```dotenv
+AUTH_ENABLED=true
+AUTH_USERNAME=admin
+AUTH_PASSWORD_HASH=<paste hash here>
+# Optional. Auto-generated under multi-user/_system/auth/auth_secret if blank.
+AUTH_SECRET=your-secret-here
+```
+
+This env-var path serves a single account and is treated as the admin. Once you run the browser registration flow, the on-disk store at `multi-user/_system/auth/users.json` takes priority and the env vars become a fallback.
+
+</details>
+
+<details>
+<summary><b>PocketBase sidecar (optional auth + storage)</b></summary>
+
+PocketBase is an optional lightweight backend that replaces the built-in SQLite/JSON auth and session storage. It adds OAuth-ready authentication, real-time subscriptions, and a visual admin panel — with zero changes required to switch back if you don't set `POCKETBASE_URL`.
+
+> ⚠️ **PocketBase mode is currently single-user only.** The default schema has no `role` field on `users` (every login resolves to `role=user`, so no admin can be created), and the session/message/turn queries are not filtered by `user_id`. Multi-user deployments should keep `POCKETBASE_URL` blank and use the default JSON/SQLite backend.
+
+**When to use it:** local single-user setups that want OAuth-ready auth and a visual admin panel without yet caring about per-user isolation.
+
+**Quick start (Docker Compose):**
+
+```bash
+# PocketBase starts automatically alongside DeepTutor when using docker compose
+docker compose up -d
+
+# 1. Open the admin panel and create your admin account
+open http://localhost:8090/_/
+
+# 2. Bootstrap collections (run once)
+pip install pocketbase
+python scripts/pb_setup.py
+
+# 3. Enable PocketBase in .env and restart
+```
+
+**Required `.env` additions:**
+
+```dotenv
+POCKETBASE_URL=http://localhost:8090          # or http://pocketbase:8090 inside Docker
+POCKETBASE_ADMIN_EMAIL=admin@example.com
+POCKETBASE_ADMIN_PASSWORD=your-admin-password
+```
+
+**devenv users:**
+
+```bash
+devenv up   # starts PocketBase on :8090 alongside backend and frontend
+```
+
+Leave `POCKETBASE_URL` unset (or remove it) to fall back to the built-in SQLite backend at any time — no data migration needed for new sessions.
+
+</details>
+
+<details>
+<summary><b>Development mode (hot-reload)</b></summary>
+
+Layer the dev override to mount source code and enable hot-reload for both services:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Changes to `deeptutor/`, `deeptutor_cli/`, `scripts/`, and `web/` are reflected immediately.
+
+</details>
+
+<details>
+<summary><b>Custom ports</b></summary>
+
+Override the default ports in `.env`:
+
+```dotenv
+BACKEND_PORT=9001
+FRONTEND_PORT=4000
+```
+
+Then restart:
+
+```bash
+docker compose up -d     # or docker compose -f docker-compose.ghcr.yml up -d
+```
+
+</details>
+
+<details>
+<summary><b>Data persistence</b></summary>
+
+User data and knowledge bases are persisted via Docker volumes mapped to local directories:
+
+| Container path | Host path | Content |
+|:---|:---|:---|
+| `/app/data/user` | `./data/user` | Settings, workspace, sessions, logs |
+| `/app/data/memory` | `./data/memory` | Shared long-term memory (`SUMMARY.md`, `PROFILE.md`) |
+| `/app/data/knowledge_bases` | `./data/knowledge_bases` | Uploaded documents & vector indices |
+
+These directories survive `docker compose down` and are reused on the next `docker compose up`.
+
+</details>
+
+<details>
+<summary><b>Environment variables reference</b></summary>
+
+> See [`.env.example`](.env.example) for the canonical, fully-commented list. The table below covers the variables most users touch.
+
+| Variable | Required | Description |
+|:---|:---:|:---|
+| `LLM_BINDING` | **Yes** | LLM provider (`openai`, `anthropic`, `deepseek`, etc.) |
+| `LLM_MODEL` | **Yes** | Model name (e.g. `gpt-4o`) |
+| `LLM_API_KEY` | **Yes** | Your LLM API key |
+| `LLM_HOST` | **Yes** | Chat-completions base URL |
+| `LLM_API_VERSION` | No | Required for Azure OpenAI; blank otherwise |
+| `LLM_REASONING_EFFORT` | No | DeepSeek `high`/`max`/`minimal` or OpenAI o-series `low`/`medium`/`high` |
+| `EMBEDDING_BINDING` | Knowledge Base only | Embedding provider |
+| `EMBEDDING_MODEL` | Knowledge Base only | Embedding model name |
+| `EMBEDDING_API_KEY` | Knowledge Base only | Embedding API key |
+| `EMBEDDING_HOST` | Knowledge Base only | Full embedding endpoint URL (v1.3.0+ — called verbatim, no path appended) |
+| `EMBEDDING_DIMENSION` | No | Vector dimension; leave empty for auto-detection |
+| `EMBEDDING_SEND_DIMENSIONS` | No | Tri-state — `true`/`false`/blank (auto) |
+| `SEARCH_PROVIDER` | No | `brave`, `tavily`, `serper`, `jina`, `perplexity`, `searxng`, `duckduckgo` |
+| `SEARCH_API_KEY` | No | Search API key |
+| `SEARCH_BASE_URL` | No | Required for self-hosted SearXNG |
+| `SEARCH_PROXY` | No | Optional HTTP/HTTPS proxy for outbound search traffic |
+| `BACKEND_PORT` | No | Backend port (default `8001`) |
+| `FRONTEND_PORT` | No | Frontend port (default `3782`) |
+| `POCKETBASE_PORT` | No | Docker port mapping for the optional PocketBase sidecar (default `8090`) |
+| `NEXT_PUBLIC_API_BASE_EXTERNAL` | No | Public backend URL for cloud deployment |
+| `NEXT_PUBLIC_API_BASE` | No | Direct backend URL override for the Next.js client |
+| `CORS_ORIGIN` | No | Single extra origin appended to the FastAPI CORS allowlist |
+| `CORS_ORIGINS` | No | Comma/newline-separated extra origins for authenticated remote deployments |
+| `DISABLE_SSL_VERIFY` | No | Disable outbound TLS verification (default `false`) |
+| `AUTH_ENABLED` | No | Require login when `true` (default `false`) |
+| `NEXT_PUBLIC_AUTH_ENABLED` | No | Optional frontend override; blank derives from `AUTH_ENABLED` |
+| `AUTH_SECRET` | No | JWT signing secret; generated under `multi-user/_system/auth/auth_secret` if blank |
+| `AUTH_TOKEN_EXPIRE_HOURS` | No | Session duration in hours (default `24`) |
+| `AUTH_COOKIE_SECURE` | No | Mark the auth cookie `Secure` when serving over HTTPS (default `false`) |
+| `AUTH_USERNAME` | No | Single-user mode: admin username |
+| `AUTH_PASSWORD_HASH` | No | Single-user mode: bcrypt hash of admin password |
+| `POCKETBASE_URL` | No | Enable the PocketBase sidecar by setting it (single-user only — see warning above) |
+| `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD` | No | Admin credentials for the Python backend to manage PocketBase collections |
+| `POCKETBASE_EXTERNAL_URL` | No | Public PocketBase URL for OAuth redirects (remote deployments only) |
+| `CHAT_ATTACHMENT_DIR` | No | Override for the chat attachment storage root |
+
+</details>
+
+### Option D — CLI Only
+
+If you just want the CLI without the web frontend:
+
+```bash
+# Includes RAG, document parsing, and all built-in LLM provider SDKs.
+# Same set as Option B minus FastAPI/uvicorn.
+python -m pip install -e ".[cli]"
+```
+
+You still need to configure your LLM provider. The quickest way:
+
+```bash
+cp .env.example .env   # then edit .env to fill in your API keys
+```
+
+Once configured, you're ready to go:
+
+```bash
+deeptutor chat                                   # Interactive REPL
+deeptutor run chat "Explain Fourier transform"   # One-shot capability
+deeptutor run deep_solve "Solve x^2 = 4"         # Multi-agent problem solving
+deeptutor kb create my-kb --doc textbook.pdf     # Build a knowledge base
+```
+
+> See [DeepTutor CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) for the full feature guide and command reference.
+>>>>>>> ac8f00b (prepare v1.3.10 release)
 
 ---
 
