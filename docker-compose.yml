@@ -4,18 +4,31 @@
 # This file provides orchestration for DeepTutor services
 #
 # Usage:
+<<<<<<< HEAD
 #   Start all services:  docker compose up -d
 #   Stop all services:    docker compose down
 #   View logs:           docker compose logs -f
 #   Rebuild:             docker compose up -d --build
+=======
+#   Production:  python scripts/docker_compose.py up -d
+#   Development: python scripts/docker_compose.py -f docker-compose.yml -f docker-compose.dev.yml up
+#   Build only:  python scripts/docker_compose.py build
+>>>>>>> 85779c8 (refactor env settings and installation)
 #
 # Prerequisites:
-#   1. Copy .env.example to .env and configure your API keys
-#   2. Runtime settings are stored in ./data/user/settings (created automatically)
+#   1. Runtime settings are stored in ./data/user/settings (created automatically)
+#   2. Configure model providers from the web Settings page or model_catalog.json
+#   3. Use scripts/docker_compose.py so port mappings are rendered from system.json
 #
+<<<<<<< HEAD
 # LiteRT-LM bridge (on-device Gemma):
 #   The model is downloaded automatically on first startup.
 #   Set LITERTLM_MODEL_PATH in .env to override the default location.
+=======
+# Local LLM (LM Studio / Ollama / vLLM):
+#   Use "host.docker.internal" instead of "localhost" in provider base_url fields.
+#   Configure provider endpoints in data/user/settings/model_catalog.json or the UI.
+>>>>>>> 85779c8 (refactor env settings and installation)
 # ============================================
 
 services:
@@ -58,15 +71,15 @@ services:
 
   # ============================================
   # PocketBase — optional auth + storage sidecar
-  # Set POCKETBASE_URL=http://pocketbase:8090 in .env to activate.
-  # Leave POCKETBASE_URL blank to run without PocketBase (SQLite fallback).
+  # Set integrations.pocketbase_url=http://pocketbase:8090 to activate.
+  # Leave integrations.pocketbase_url blank to run without PocketBase (SQLite fallback).
   # ============================================
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
     container_name: pocketbase
     restart: unless-stopped
     ports:
-      - "${POCKETBASE_PORT:-8090}:8090"
+      - "${DEEPTUTOR_DOCKER_POCKETBASE_PORT:-8090}:8090"
     volumes:
       - ./data/pocketbase:/pb/pb_data
     networks:
@@ -86,12 +99,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
-      args:
-        # Pass backend port at build time for Next.js static optimization
-        - BACKEND_PORT=${BACKEND_PORT:-8001}
     container_name: deeptutor
     restart: unless-stopped
     ports:
+<<<<<<< HEAD
       - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
       - "${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
 
@@ -148,6 +159,10 @@ services:
       # Extra frontend origin(s) allowed by FastAPI CORS when auth is enabled.
       - CORS_ORIGIN=${CORS_ORIGIN:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-}
+=======
+      - "${DEEPTUTOR_DOCKER_BACKEND_PORT:-8001}:${DEEPTUTOR_DOCKER_BACKEND_PORT:-8001}"
+      - "${DEEPTUTOR_DOCKER_FRONTEND_PORT:-3782}:${DEEPTUTOR_DOCKER_FRONTEND_PORT:-3782}"
+>>>>>>> 85779c8 (refactor env settings and installation)
 
     volumes:
       # Mount local data directory for persistence (read-write)
@@ -159,7 +174,7 @@ services:
       - ./data/models:/app/data/models
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8001}/"]
+      test: ["CMD", "curl", "-f", "http://localhost:${DEEPTUTOR_DOCKER_BACKEND_PORT:-8001}/"]
       interval: 30s
       timeout: 10s
       retries: 3
