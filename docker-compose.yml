@@ -15,9 +15,48 @@
 # Local LLM (LM Studio / Ollama / vLLM):
 #   Use "host.docker.internal" instead of "localhost" for LLM_HOST / EMBEDDING_HOST.
 #   See .env.example for details.
+#
+# LiteRT-LM bridge (on-device Gemma):
+#   Set LITERTLM_MODEL_PATH in .env to the absolute host path of the .litertlm file.
+#   The bridge is OPT-IN via Docker profile — only starts when explicitly requested:
+#     docker compose --profile litertlm up
+#   Without the profile, set LLM_HOST to wherever your bridge is running.
 # ============================================
 
 services:
+  # ============================================
+  # LiteRT-LM Bridge — on-device Gemma-4 E2B model server
+  # Exposes an OpenAI-compatible API on port 8000 inside the network.
+  # OPT-IN: only starts when --profile litertlm is passed.
+  #   docker compose --profile litertlm up
+  # Requires LITERTLM_MODEL_PATH set in .env (host path to .litertlm file).
+  # Runs natively on Linux x86-64 (and Windows/macOS via Docker Desktop).
+  # ============================================
+  litertlm:
+    profiles: [litertlm]
+    image: python:3.12-slim
+    container_name: litertlm
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./litertlm:/app
+      # Map the host path (Windows/Linux) to a fixed path inside the container
+      - ${LITERTLM_MODEL_PATH}:/model.litertlm:ro
+    environment:
+      - LITERTLM_MODEL_PATH=/model.litertlm
+    command: >-
+      sh -c "pip install uv -q && uv run bridge.py"
+    ports:
+      - "8000:8000"
+    networks:
+      - deeptutor-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v1/models"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
   # ============================================
   # PocketBase — optional auth + storage sidecar
   # Set POCKETBASE_URL=http://pocketbase:8090 in .env to activate.
@@ -66,9 +105,12 @@ services:
       - LLM_BINDING=${LLM_BINDING:-openai}
       - LLM_MODEL=${LLM_MODEL}
       - LLM_API_KEY=${LLM_API_KEY}
-      - LLM_HOST=${LLM_HOST}
+      # When running with --profile litertlm, the bridge is reachable at http://litertlm:8000/v1
+      # (Docker internal DNS). Set LLM_HOST accordingly in .env or override here.
+      - LLM_HOST=${LLM_HOST:-http://litertlm:8000/v1}
       - LLM_API_VERSION=${LLM_API_VERSION:-}
       - DISABLE_SSL_VERIFY=${DISABLE_SSL_VERIFY:-false}
+      - LITERTLM_MODEL_PATH=${LITERTLM_MODEL_PATH:-}
       # Embedding Configuration (Required for Knowledge Base)
       - EMBEDDING_BINDING=${EMBEDDING_BINDING:-openai}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-large}

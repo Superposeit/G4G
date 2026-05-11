@@ -88,6 +88,8 @@ PROVIDER_ALIASES = {
     "github-copilot": "github_copilot",
     "openai-codex": "openai_codex",
     "lm-studio": "lm_studio",
+    "litert-lm": "litertlm",
+    "litert_lm": "litertlm",
 }
 
 
@@ -378,6 +380,16 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         is_local=True,
         detect_by_base_keyword="8080",
         default_api_base="http://localhost:8080/v1",
+    ),
+    ProviderSpec(
+        name="litertlm",
+        keywords=("litertlm", "litert", "gemma-4-e2b"),
+        env_key="",
+        display_name="LiteRT-LM (Mobile / On-Device)",
+        backend="openai_compat",
+        is_local=True,
+        detect_by_base_keyword="litertlm",
+        default_api_base="http://localhost:8000/v1",
     ),
     ProviderSpec(
         name="ovms",
