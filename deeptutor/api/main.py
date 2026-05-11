@@ -243,6 +243,7 @@ from deeptutor.api.routers import (
     co_writer,
     dashboard,
     knowledge,
+    litertlm,
     memory,
     notebook,
     plugins_api,
@@ -308,6 +309,9 @@ app.include_router(
 )
 app.include_router(skills.router, prefix="/api/v1/skills", tags=["skills"], dependencies=_auth)
 app.include_router(system.router, prefix="/api/v1/system", tags=["system"], dependencies=_auth)
+app.include_router(
+    litertlm.router, prefix="/api/v1/litertlm", tags=["litertlm"], dependencies=_auth
+)
 app.include_router(
     plugins_api.router, prefix="/api/v1/plugins", tags=["plugins"], dependencies=_auth
 )
