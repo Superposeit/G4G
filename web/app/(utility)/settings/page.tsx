@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  Cpu,
   Database,
   Eye,
   EyeOff,
@@ -28,8 +29,9 @@ import { ModelAccessSummary } from "@/features/multi-user/components/ModelAccess
 import type { ModelAccess } from "@/features/multi-user/types";
 import { apiFetch, apiUrl } from "@/lib/api";
 import { setTheme as applyThemePreference } from "@/lib/theme";
+import LiteRTLMSection from "@/components/litertlm/LiteRTLMSection";
 
-type ServiceName = "llm" | "embedding" | "search";
+type ServiceName = "llm" | "embedding" | "search" | "litertlm";
 
 type CatalogModel = {
   id: string;
@@ -100,7 +102,7 @@ type SystemStatus = {
   search: { status: string; provider?: string; error?: string };
 };
 
-const SERVICES = ["llm", "embedding", "search"] as const;
+const SERVICES = ["llm", "embedding", "search", "litertlm"] as const;
 
 // ---------------------------------------------------------------------------
 
@@ -126,7 +128,7 @@ function getActiveModel(
   catalog: Catalog,
   serviceName: ServiceName,
 ): CatalogModel | null {
-  if (serviceName === "search") return null;
+  if (serviceName === "search" || serviceName === "litertlm") return null;
   const service = catalog.services[serviceName];
   const profile = getActiveProfile(catalog, serviceName);
   if (!profile) return null;
@@ -140,6 +142,7 @@ function getActiveModel(
 function serviceIcon(service: ServiceName) {
   if (service === "llm") return <Brain className="h-3.5 w-3.5" />;
   if (service === "embedding") return <Database className="h-3.5 w-3.5" />;
+  if (service === "litertlm") return <Cpu className="h-3.5 w-3.5" />;
   return <Search className="h-3.5 w-3.5" />;
 }
 
@@ -149,6 +152,7 @@ function serviceLabel(
 ): string {
   if (service === "llm") return t("LLM");
   if (service === "embedding") return t("Embedding");
+  if (service === "litertlm") return t("LiteRT-LM");
   return t("Search");
 }
 
@@ -158,7 +162,7 @@ function activeProfileDetail(
   t: (key: string) => string,
 ): string {
   if (!profile) return t("No profile");
-  if (service === "search") return profile.provider || t("No provider");
+  if (service === "search" || service === "litertlm") return profile.provider || t("No provider");
   return profile.base_url || t("No endpoint");
 }
 
@@ -168,7 +172,7 @@ function activeModelDetail(
   service: ServiceName,
   t: (key: string) => string,
 ): string {
-  if (service === "search") return profile?.provider || t("No provider");
+  if (service === "search" || service === "litertlm") return profile?.provider || t("No provider");
   return model?.model || model?.name || t("No model selected");
 }
 
@@ -781,16 +785,16 @@ function SettingsPageContent() {
       const profile: CatalogProfile = {
         id: profileId,
         name: "New Profile",
-        binding: activeService === "search" ? undefined : "openai",
-        provider: activeService === "search" ? "brave" : undefined,
+        binding: activeService === "search" || activeService === "litertlm" ? undefined : "openai",
+        provider: activeService === "search" || activeService === "litertlm" ? "brave" : undefined,
         base_url: "",
         api_key: "",
         api_version: "",
-        extra_headers: activeService === "search" ? undefined : {},
-        proxy: activeService === "search" ? "" : undefined,
+        extra_headers: activeService === "search" || activeService === "litertlm" ? undefined : {},
+        proxy: activeService === "search" || activeService === "litertlm" ? "" : undefined,
         models: [],
       };
-      if (activeService !== "search") {
+      if (activeService !== "search" && activeService !== "litertlm") {
         const modelId = `${activeService}-model-${Date.now()}`;
         profile.models.push({
           id: modelId,
@@ -814,14 +818,14 @@ function SettingsPageContent() {
         (profile) => profile.id !== service.active_profile_id,
       );
       service.active_profile_id = service.profiles[0]?.id ?? null;
-      if (activeService !== "search") {
+      if (activeService !== "search" && activeService !== "litertlm") {
         service.active_model_id = service.profiles[0]?.models?.[0]?.id ?? null;
       }
     });
   };
 
   const addModel = () => {
-    if (activeService === "search") return;
+    if (activeService === "search" || activeService === "litertlm") return;
     mutateCatalog((next) => {
       const service = next.services[activeService];
       const profile =
@@ -846,7 +850,7 @@ function SettingsPageContent() {
   };
 
   const removeActiveModel = () => {
-    if (activeService === "search") return;
+    if (activeService === "search" || activeService === "litertlm") return;
     mutateCatalog((next) => {
       const service = next.services[activeService];
       const profile =
@@ -870,7 +874,7 @@ function SettingsPageContent() {
   };
 
   const updateModelField = (field: keyof CatalogModel, value: string) => {
-    if (activeService === "search") return;
+    if (activeService === "search" || activeService === "litertlm") return;
     mutateCatalog((next) => {
       const model = getActiveModel(next, activeService);
       if (!model) return;
@@ -897,7 +901,7 @@ function SettingsPageContent() {
   };
 
   const updateModelBoolField = (field: keyof CatalogModel, value: boolean) => {
-    if (activeService === "search") return;
+    if (activeService === "search" || activeService === "litertlm") return;
     mutateCatalog((next) => {
       const model = getActiveModel(next, activeService);
       if (!model) return;
@@ -1230,7 +1234,9 @@ function SettingsPageContent() {
                 ? status?.llm
                 : service === "embedding"
                   ? status?.embeddings
-                  : status?.search;
+                  : service === "litertlm"
+                    ? undefined
+                    : status?.search;
             const runtimeModel =
               service === "llm"
                 ? status?.llm.model
@@ -1238,7 +1244,7 @@ function SettingsPageContent() {
                   ? status?.embeddings.model
                   : undefined;
             const configured =
-              service === "search"
+              service === "search" || service === "litertlm"
                 ? Boolean(profile?.provider || status?.search.provider)
                 : Boolean(model?.model || runtimeModel);
             const pendingApply = servicePendingApply(catalog, draft, service);
@@ -1323,7 +1329,7 @@ function SettingsPageContent() {
                 <Plus className="h-3 w-3" />
                 {t("Profile")}
               </button>
-              {activeService !== "search" && (
+              {activeService !== "search" && activeService !== "litertlm" && (
                 <button
                   onClick={addModel}
                   className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2.5 py-1 text-[12px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
@@ -1344,7 +1350,7 @@ function SettingsPageContent() {
                     profile.id ===
                     draft.services[activeService].active_profile_id;
                   const activeProfileModel =
-                    activeService === "search"
+                    activeService === "search" || activeService === "litertlm"
                       ? null
                       : (profile.models.find(
                           (model) =>
@@ -1371,7 +1377,7 @@ function SettingsPageContent() {
                         mutateCatalog((next) => {
                           next.services[activeService].active_profile_id =
                             profile.id;
-                          if (activeService !== "search") {
+                          if (activeService !== "search" && activeService !== "litertlm") {
                             next.services[activeService].active_model_id =
                               profile.models[0]?.id ?? null;
                           }
@@ -1397,16 +1403,18 @@ function SettingsPageContent() {
                           <div
                             className={`${labelClass("sm")} text-[var(--muted-foreground)]/70`}
                           >
-                            {activeService === "search"
+                            {activeService === "search" || activeService === "litertlm"
                               ? t("Active provider")
                               : t("Active model")}
                           </div>
                           <div className="mt-0.5 truncate text-[12px] font-medium text-[var(--foreground)]">
-                            {modelDetail}
+                            {activeService === "search" || activeService === "litertlm"
+                              ? modelDetail
+                              : modelDetail}
                           </div>
                         </div>
                       ) : (
-                        activeService !== "search" && (
+                        activeService !== "search" && activeService !== "litertlm" && (
                           <div className="mt-1 text-[11px] text-[var(--muted-foreground)]/60">
                             {t("{{count}} models", {
                               count: profile.models.length,
@@ -1448,20 +1456,20 @@ function SettingsPageContent() {
                     </div>
                     <div>
                       <div className="mb-1.5 text-[12px] text-[var(--muted-foreground)]">
-                        {t("Provider")}
+                        {activeService === "search" || activeService === "litertlm" ? t("Provider") : t("Binding")}
                       </div>
                       <div className="relative">
                         <select
                           className={selectClass}
                           value={
-                            activeService === "search"
+                            activeService === "search" || activeService === "litertlm"
                               ? activeProfile.provider || ""
                               : activeProfile.binding || ""
                           }
                           onChange={(e) => {
                             const val = e.target.value;
                             const field =
-                              activeService === "search"
+                              activeService === "search" || activeService === "litertlm"
                                 ? "provider"
                                 : "binding";
                             updateProfileField(field, val);
@@ -1480,7 +1488,7 @@ function SettingsPageContent() {
                           }}
                         >
                           <option className={selectOptionClass} value="">
-                            {t("Select provider...")}
+                            {activeService === "search" || activeService === "litertlm" ? t("Select provider...") : t("Select binding...")}
                           </option>
                           {(providers[activeService] || []).map((p) => (
                             <option
@@ -1594,7 +1602,7 @@ function SettingsPageContent() {
                         placeholder={t("Optional")}
                       />
                     </div>
-                    {activeService === "search" ? (
+                    {activeService === "search" || activeService === "litertlm" ? (
                       <div>
                         <div className="mb-1.5 text-[12px] text-[var(--muted-foreground)]">
                           {t("Proxy")}
@@ -1628,7 +1636,7 @@ function SettingsPageContent() {
                   </div>
                 </div>
 
-                {activeService !== "search" && (
+                {activeService !== "search" && activeService !== "litertlm" && (
                   <div className="rounded-xl border border-[var(--border)] p-5">
                     <div className="mb-4 flex items-center justify-between">
                       <div className="text-[13px] font-medium text-[var(--foreground)]">
@@ -1822,6 +1830,9 @@ function SettingsPageContent() {
               {t("No profiles configured. Add a profile to start.")}
             </div>
           )}
+
+          {/* ── LiteRT-LM Model Management ── */}
+          {activeService === "litertlm" && <LiteRTLMSection />}
         </div>
 
         {/* ── Diagnostics ── */}
