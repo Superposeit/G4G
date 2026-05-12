@@ -62,7 +62,7 @@ def _extract_message_from_payload(payload: dict[str, object]) -> str:
 
 
 # Extended timeout for local servers (may be slower than cloud)
-DEFAULT_TIMEOUT = 300  # 5 minutes
+DEFAULT_TIMEOUT = 600  # 5 minutes
 
 
 async def complete(

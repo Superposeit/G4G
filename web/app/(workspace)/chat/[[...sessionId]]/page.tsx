@@ -17,6 +17,7 @@ import {
   Microscope,
   PenLine,
   Sparkles,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -218,6 +219,14 @@ const CAPABILITIES: CapabilityDef[] = [
     icon: Clapperboard,
     allowedTools: [],
     defaultTools: [],
+  },
+  {
+    value: "tutorrd",
+    label: "TutorRD",
+    description: "Tutor socrático de matemáticas dominicanas",
+    icon: GraduationCap,
+    allowedTools: ["rag"],
+    defaultTools: ["rag"],
   },
   {
     value: "visualize",
