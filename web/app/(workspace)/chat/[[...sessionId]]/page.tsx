@@ -320,6 +320,8 @@ export default function ChatPage() {
     cancelStreamingTurn,
     regenerateLastMessage,
     deleteTurn,
+    editMessage,
+    switchBranch,
     newSession,
     loadSession,
     selectedSessionId,
@@ -1690,6 +1692,9 @@ export default function ChatPage() {
               onConfirmOutline={handleConfirmOutline}
               onPreviewAttachment={handlePreviewMessageAttachment}
               onDeleteTurn={deleteTurn}
+              selectedBranches={state.selectedBranches}
+              onEditMessage={editMessage}
+              onSwitchBranch={switchBranch}
             />
             <div ref={messagesEndRef} className="h-px w-full shrink-0" />
           </div>
