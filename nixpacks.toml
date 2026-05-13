@@ -1,8 +1,36 @@
+# Nixpacks configuration for Dokploy deployment
+# This configures how the application is built and deployed
+
 [phases.setup]
-nixPkgs = ["python3", "gcc"]
+nixPkgs = ["python3", "gcc", "curl", "git"]
 
 [phases.install]
-cmds = ["python -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements.txt"]
+# Install Python dependencies
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate",
+  "pip install --upgrade pip",
+  "pip install -r requirements.txt"
+]
+
+[phases.build]
+# Build the application
+cmds = [
+  ". /opt/venv/bin/activate",
+  "pip install -e ."
+]
 
 [start]
+# Start the backend server
 cmd = "/opt/venv/bin/python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port 8001"
+
+[env]
+# Set environment variables for the application
+PYTHONUNBUFFERED = "1"
+BACKEND_PORT = "8001"
+FRONTEND_PORT = "3782"
+
+# Health check
+[healthcheck]
+path = "/"
+port = 8001
