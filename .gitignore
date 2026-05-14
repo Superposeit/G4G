@@ -77,7 +77,7 @@ node_modules/
 web/.next/
 out/
 web/out/
-
+bun.lock
 # Auto-generated env.local (created by start_web.py / start_tour.py)
 web/.env.local
 

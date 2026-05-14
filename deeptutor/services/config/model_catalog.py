@@ -39,6 +39,7 @@ def _default_catalog() -> dict[str, Any]:
             "llm": _service_shell(),
             "embedding": _service_shell(),
             "search": _search_shell(),
+            "litertlm": _search_shell(),
         },
     }
 
@@ -444,7 +445,8 @@ class ModelCatalogService:
         services.setdefault("llm", _service_shell())
         services.setdefault("embedding", _service_shell())
         services.setdefault("search", _search_shell())
-        for service_name in ("llm", "embedding", "search"):
+        services.setdefault("litertlm", _search_shell())
+        for service_name in ("llm", "embedding", "search", "litertlm"):
             service = services[service_name]
             profiles = service.setdefault("profiles", [])
             for profile in profiles:
@@ -453,7 +455,7 @@ class ModelCatalogService:
                 profile.setdefault("api_version", "")
                 profile.setdefault("base_url", "")
                 profile.setdefault("api_key", "")
-                if service_name == "search":
+                if service_name in {"search", "litertlm"}:
                     profile.setdefault("provider", "brave")
                     profile.setdefault("proxy", "")
                     profile["models"] = []

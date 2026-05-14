@@ -31,6 +31,8 @@ export interface ModelInfo {
   min_cpu: string;
   min_ram_gb: number;
   tags: string[];
+  downloads: number;
+  likes: number;
 }
 
 export interface CompatibilityStatus {
@@ -86,8 +88,9 @@ export async function getHardwareSpecs(): Promise<HardwareSpecs> {
 /**
  * Get list of available LiteRT-LM models with compatibility info
  */
-export async function getAvailableModels(): Promise<ModelWithCompatibility[]> {
-  const response = await apiFetch(apiUrl("/api/v1/litertlm/models/available"));
+export async function getAvailableModels(search = ""): Promise<ModelWithCompatibility[]> {
+  const params = search ? `?search=${encodeURIComponent(search)}` : "";
+  const response = await apiFetch(apiUrl(`/api/v1/litertlm/models/available${params}`));
   if (!response.ok) {
     throw new Error(`Failed to get available models: ${response.statusText}`);
   }

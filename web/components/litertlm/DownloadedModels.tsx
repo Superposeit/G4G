@@ -22,6 +22,13 @@ export default function DownloadedModels() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [activating, setActivating] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,9 +62,13 @@ export default function DownloadedModels() {
       // Refresh downloaded models
       const data = await getDownloadedModels();
       setDownloadedModels(data);
+      setToast({ message: "Model deleted successfully", type: "success" });
     } catch (e) {
       console.error("Failed to delete model:", e);
-      alert(e instanceof Error ? e.message : "Failed to delete model");
+      setToast({
+        message: e instanceof Error ? e.message : "Failed to delete model",
+        type: "error",
+      });
     } finally {
       setDeleting(null);
     }
@@ -67,13 +78,16 @@ export default function DownloadedModels() {
     setActivating(modelId);
     try {
       const result = await setActiveModel(modelId);
-      alert(`${result.message}\n\n${result.note}`);
+      setToast({ message: `${result.message}\n\n${result.note}`, type: "success" });
       // Refresh downloaded models to update active status
       const data = await getDownloadedModels();
       setDownloadedModels(data);
     } catch (e) {
       console.error("Failed to set active model:", e);
-      alert(e instanceof Error ? e.message : "Failed to set active model");
+      setToast({
+        message: e instanceof Error ? e.message : "Failed to set active model",
+        type: "error",
+      });
     } finally {
       setActivating(null);
     }
@@ -115,6 +129,17 @@ export default function DownloadedModels() {
 
   return (
     <div className="space-y-3">
+      {toast && (
+        <div
+          className={`mb-4 rounded-xl p-4 text-sm font-medium ${
+            toast.type === "error"
+              ? "border border-red-200 bg-red-50 text-red-900 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-100"
+              : "border border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/30 dark:bg-emerald-900/10 dark:text-emerald-100"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
       {downloadedModels.map((model) => {
         const isDeleting = deleting === model.id;
         const isActivating = activating === model.id;

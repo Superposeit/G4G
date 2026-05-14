@@ -169,7 +169,7 @@ def _provider_choices() -> dict[str, list[dict[str, str]]]:
         {"value": "duckduckgo", "label": "DuckDuckGo", "base_url": ""},
         {"value": "perplexity", "label": "Perplexity", "base_url": ""},
     ]
-    return {"llm": llm, "embedding": embedding, "search": search}
+    return {"llm": llm, "embedding": embedding, "search": search, "litertlm": []}
 
 
 @router.get("")
