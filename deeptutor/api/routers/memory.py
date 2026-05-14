@@ -8,7 +8,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from deeptutor.services.memory import MemoryFile, get_memory_service
-from deeptutor.services.session import get_sqlite_session_store as get_session_store
+from deeptutor.services.session import get_sqlite_session_store
+
+get_session_store = get_sqlite_session_store
 
 router = APIRouter()
 
