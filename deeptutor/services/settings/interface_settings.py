@@ -14,7 +14,7 @@ from deeptutor.services.path_service import get_path_service
 
 DEFAULT_UI_SETTINGS: dict[str, Any] = {
     "theme": "light",
-    "language": "en",
+    "language": "es",
 }
 
 
@@ -25,7 +25,7 @@ def _interface_settings_file():
     return get_path_service().get_settings_file("interface")
 
 
-def _normalize_language(language: Any, default: str = "en") -> str:
+def _normalize_language(language: Any, default: str = "es") -> str:
     """
     Normalize language codes:
     - en/english -> en
@@ -40,11 +40,13 @@ def _normalize_language(language: Any, default: str = "en") -> str:
             return "en"
         if s in {"zh", "chinese", "cn"}:
             return "zh"
+        if s in {"es", "spanish", "sp"}:
+            return "es"
 
     # Fall back to default
     if isinstance(default, str):
-        return _normalize_language(default, "en")
-    return "en"
+        return _normalize_language(default, "es")
+    return "es"
 
 
 def get_ui_settings() -> dict[str, Any]:
@@ -71,7 +73,7 @@ def get_ui_settings() -> dict[str, Any]:
     return DEFAULT_UI_SETTINGS.copy()
 
 
-def get_ui_language(default: str = "en") -> str:
+def get_ui_language(default: str = "es") -> str:
     """
     Get current UI language.
 

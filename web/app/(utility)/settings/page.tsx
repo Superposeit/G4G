@@ -79,7 +79,7 @@ type Catalog = {
 
 type UiSettings = {
   theme: "light" | "dark" | "glass" | "snow";
-  language: "en" | "zh";
+  language: "en" | "zh" | "es";
 };
 
 type ProviderOption = {
@@ -243,12 +243,12 @@ function formatContextWindowSource(
 
 function formatContextWindowUpdatedAt(
   value: string | undefined,
-  language: "en" | "zh",
+  language: "en" | "zh" | "es",
 ): string {
   if (!value) return "";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString(language === "zh" ? "zh-CN" : "en-US", {
+  return parsed.toLocaleString(language === "zh" ? "zh-CN" : language === "es" ? "es-ES" : "en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -594,7 +594,7 @@ function SettingsPageContent() {
   const [theme, setTheme] = useState<"light" | "dark" | "glass" | "snow">(
     "light",
   );
-  const [language, setLanguage] = useState<"en" | "zh">("en");
+  const [language, setLanguage] = useState<"en" | "zh" | "es">("es");
   const [catalog, setCatalog] = useState<Catalog>(defaultCatalog());
   const [draft, setDraft] = useState<Catalog>(defaultCatalog());
   const [modelAccess, setModelAccess] = useState<ModelAccess | null>(null);
@@ -740,7 +740,7 @@ function SettingsPageContent() {
 
   const persistUi = async (
     nextTheme: "light" | "dark" | "glass" | "snow",
-    nextLanguage: "en" | "zh",
+    nextLanguage: "en" | "zh" | "es",
   ) => {
     await apiFetch(apiUrl("/api/v1/settings/ui"), {
       method: "PUT",
@@ -757,7 +757,7 @@ function SettingsPageContent() {
     await persistUi(nextTheme, language);
   };
 
-  const updateLanguage = async (nextLanguage: "en" | "zh") => {
+  const updateLanguage = async (nextLanguage: "en" | "zh" | "es") => {
     setLanguage(nextLanguage);
     writeStoredLanguage(nextLanguage);
     await persistUi(theme, nextLanguage);
@@ -1146,7 +1146,7 @@ function SettingsPageContent() {
               {t("Language")}
             </span>
             <div className="flex gap-0.5 rounded-lg bg-[var(--muted)] p-0.5">
-              {(["en", "zh"] as const).map((v) => (
+              {(["en", "zh", "es"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => updateLanguage(v)}
@@ -1156,7 +1156,7 @@ function SettingsPageContent() {
                       : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   }`}
                 >
-                  {v === "en" ? t("language.english") : t("language.chinese")}
+                  {v === "en" ? t("language.english") : v === "zh" ? t("language.chinese") : t("language.spanish")}
                 </button>
               ))}
             </div>
@@ -1221,7 +1221,7 @@ function SettingsPageContent() {
                 const parsed = new Date(ts);
                 if (Number.isNaN(parsed.getTime())) return "";
                 return parsed.toLocaleTimeString(
-                  language === "zh" ? "zh-CN" : "en-US",
+                  language === "zh" ? "zh-CN" : language === "es" ? "es-ES" : "en-US",
                   { hour: "2-digit", minute: "2-digit" },
                 );
               })()}
