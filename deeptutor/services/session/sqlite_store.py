@@ -14,7 +14,7 @@ import time
 from typing import Any
 import uuid
 
-from deeptutor.services.path_service import get_path_service
+from deeptutor.services.path_service import PathService
 
 
 def _json_dumps(value: Any) -> str:
@@ -61,7 +61,7 @@ class SQLiteSessionStore:
     """Persist unified chat sessions and messages in a SQLite database."""
 
     def __init__(self, db_path: Path | None = None) -> None:
-        path_service = get_path_service()
+        path_service = PathService.get_instance()
         self.db_path = db_path or path_service.get_chat_history_db()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._migrate_legacy_db(path_service)
