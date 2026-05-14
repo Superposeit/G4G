@@ -277,7 +277,7 @@
 .prose h4,
 .prose h5,
 .prose h6 {
-  @apply font-sans;
+  @apply font-display;
 }
 
 .prose h1 {

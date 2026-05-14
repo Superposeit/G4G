@@ -113,7 +113,7 @@ export default function HistorySessionPicker({
               <HistoryIcon className="h-3 w-3" />
               {t("Chat History Reference")}
             </div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               {t("Select History Sessions")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

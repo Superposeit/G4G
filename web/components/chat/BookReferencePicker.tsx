@@ -221,7 +221,7 @@ export default function BookReferencePicker({
               <BookOpen className="h-3 w-3" />
               {t("Book Reference")}
             </div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               {t("Select Book Chapters")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">
@@ -309,7 +309,7 @@ export default function BookReferencePicker({
             ) : (
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-base font-semibold text-[var(--foreground)]">
+                  <h3 className="font-display text-base font-semibold text-[var(--foreground)]">
                     {activeBook.title || t("Untitled book")}
                   </h3>
                   {activeBook.description && (

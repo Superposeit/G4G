@@ -15,7 +15,7 @@ export default function LiteRTLMSection() {
       <section>
         <div className="mb-4 flex items-center gap-2">
           <Cpu className="h-5 w-5 text-[var(--muted-foreground)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
             Hardware Specifications
           </h2>
         </div>
@@ -26,7 +26,7 @@ export default function LiteRTLMSection() {
       <section>
         <div className="mb-4 flex items-center gap-2">
           <HardDrive className="h-5 w-5 text-[var(--muted-foreground)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
             Available Models
           </h2>
         </div>
@@ -37,7 +37,7 @@ export default function LiteRTLMSection() {
       <section>
         <div className="mb-4 flex items-center gap-2">
           <HardDrive className="h-5 w-5 text-[var(--muted-foreground)]" />
-          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+          <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
             Downloaded Models
           </h2>
         </div>

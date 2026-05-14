@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
             Back
           </Link>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold text-[var(--foreground)]">
+            <h1 className="font-display text-xl font-semibold text-[var(--foreground)]">
               User Management
             </h1>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">
@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
             className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-xl"
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[var(--foreground)]">
+              <h2 className="font-display text-base font-semibold text-[var(--foreground)]">
                 Add user
               </h2>
               <button
