@@ -16,8 +16,10 @@ import {
   getAvailableModels,
   getDownloadedModels,
   downloadModel,
+  getDownloadProgress,
   type ModelWithCompatibility,
   type DownloadedModelInfo,
+  type DownloadProgress,
 } from "@/lib/litertlm-api";
 
 export default function ModelCatalog() {
@@ -30,6 +32,7 @@ export default function ModelCatalog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null);
+  const [activeDownloads, setActiveDownloads] = useState<Record<string, DownloadProgress>>({});
 
   useEffect(() => {
     if (!toast) return;
@@ -56,6 +59,18 @@ export default function ModelCatalog() {
   useEffect(() => {
     fetchModels();
   }, [fetchModels]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const progress = await getDownloadProgress();
+        setActiveDownloads(progress);
+      } catch (e) {
+        // ignore
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -152,7 +167,8 @@ export default function ModelCatalog() {
           </p>
           {availableModels.map(({ model, compatibility }) => {
             const downloaded = isDownloaded(model.id);
-            const isDownloading = downloading === model.id;
+            const activeTask = activeDownloads[model.id];
+            const isDownloading = downloading === model.id || (activeTask && (activeTask.status === "pending" || activeTask.status === "downloading"));
 
             return (
               <div

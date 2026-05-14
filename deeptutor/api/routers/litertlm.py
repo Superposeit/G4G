@@ -274,6 +274,15 @@ class DeleteModelRequest(BaseModel):
     model_id: str
 
 
+class DownloadProgress(BaseModel):
+    task_id: str
+    status: str
+    progress: float
+    downloaded_bytes: int
+    total_bytes: int
+    error: Optional[str] = None
+
+
 class TokenRequest(BaseModel):
     token: str
 
@@ -584,6 +593,74 @@ async def get_downloaded_models():
     return result
 
 
+_DOWNLOAD_TASKS: Dict[str, Dict[str, Any]] = {}
+
+def _download_thread(model_id: str, repo_id: str, target_filename: str, final_path: Path):
+    try:
+        import requests
+        
+        token = os.environ.get("HF_TOKEN")
+        headers = {}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+            
+        # Get download URL. Resolve redirect to get actual file URL
+        api_url = f"https://huggingface.co/{repo_id}/resolve/main/{target_filename}"
+        
+        # Follow redirects to get LFS URL
+        with requests.get(api_url, headers=headers, stream=True, allow_redirects=True) as r:
+            r.raise_for_status()
+            total_size = int(r.headers.get('content-length', 0))
+            
+            _DOWNLOAD_TASKS[model_id]["total_bytes"] = total_size
+            _DOWNLOAD_TASKS[model_id]["status"] = "downloading"
+            
+            temp_path = final_path.with_suffix(".download")
+            downloaded = 0
+            
+            with open(temp_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192 * 4):
+                    if _DOWNLOAD_TASKS[model_id].get("cancel"):
+                        break
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        _DOWNLOAD_TASKS[model_id]["downloaded_bytes"] = downloaded
+                        if total_size > 0:
+                            _DOWNLOAD_TASKS[model_id]["progress"] = downloaded / total_size
+                            
+            if _DOWNLOAD_TASKS[model_id].get("cancel"):
+                temp_path.unlink(missing_ok=True)
+                _DOWNLOAD_TASKS[model_id]["status"] = "cancelled"
+            else:
+                import shutil
+                if final_path.exists():
+                    final_path.unlink()
+                shutil.move(temp_path, final_path)
+                _DOWNLOAD_TASKS[model_id]["status"] = "completed"
+                _DOWNLOAD_TASKS[model_id]["progress"] = 1.0
+                
+    except Exception as e:
+        logger.error(f"Download error: {e}")
+        _DOWNLOAD_TASKS[model_id]["status"] = "error"
+        _DOWNLOAD_TASKS[model_id]["error"] = str(e)
+
+
+@router.get("/models/download/progress", response_model=Dict[str, DownloadProgress])
+async def get_download_progress():
+    """Get active download tasks progress."""
+    return _DOWNLOAD_TASKS
+
+
+@router.delete("/models/download/{task_id}")
+async def cancel_download(task_id: str):
+    """Cancel an active download."""
+    if task_id in _DOWNLOAD_TASKS:
+        _DOWNLOAD_TASKS[task_id]["cancel"] = True
+        return {"message": f"Cancelled task {task_id}"}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
 @router.post("/models/download", response_model=DownloadResponse)
 async def download_model(request: DownloadRequest):
     """Download a LiteRT-LM model from Hugging Face."""
@@ -624,8 +701,8 @@ async def download_model(request: DownloadRequest):
         )
 
     try:
-        from huggingface_hub import hf_hub_download, HfApi
-        import shutil
+        from huggingface_hub import HfApi
+        import threading
 
         _MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -643,33 +720,36 @@ async def download_model(request: DownloadRequest):
         if not target_filename:
             raise HTTPException(status_code=404, detail="No suitable .litertlm or .tflite file found in repo.")
 
-        downloaded_path = hf_hub_download(
-            repo_id=model_info.repo_id,
-            filename=target_filename,
-            local_dir=str(_MODELS_DIR),
-            token=os.environ.get("HF_TOKEN"),
-        )
-
         final_path = _MODELS_DIR / f"{model_id}.litertlm"
-        if str(downloaded_path) != str(final_path):
-            if final_path.exists():
-                final_path.unlink()
-            shutil.move(downloaded_path, final_path)
+        
+        _DOWNLOAD_TASKS[model_id] = {
+            "task_id": model_id,
+            "status": "pending",
+            "progress": 0.0,
+            "downloaded_bytes": 0,
+            "total_bytes": 0,
+            "cancel": False,
+            "error": None
+        }
+        
+        thread = threading.Thread(
+            target=_download_thread,
+            args=(model_id, model_info.repo_id, target_filename, final_path)
+        )
+        thread.start()
 
         return DownloadResponse(
             task_id=model_id,
-            status="completed",
-            message=f"Model {model_info.name} downloaded successfully",
-        )
-    except ImportError:
-        raise HTTPException(
-            status_code=500,
-            detail="huggingface_hub not installed. Install with: pip install huggingface_hub"
+            status="started",
+            message=f"Model {model_info.name} download started",
         )
     except Exception as e:
+        if model_id in _DOWNLOAD_TASKS:
+            _DOWNLOAD_TASKS[model_id]["status"] = "error"
+            _DOWNLOAD_TASKS[model_id]["error"] = str(e)
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to download model: {str(e)}"
+            detail=f"Failed to start download: {str(e)}"
         )
 
 

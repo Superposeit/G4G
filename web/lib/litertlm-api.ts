@@ -66,6 +66,15 @@ export interface DownloadResponse {
   message: string;
 }
 
+export interface DownloadProgress {
+  task_id: string;
+  status: string;
+  progress: number;
+  downloaded_bytes: number;
+  total_bytes: number;
+  error?: string;
+}
+
 export interface SetActiveModelRequest {
   model_id: string;
 }
@@ -124,6 +133,31 @@ export async function downloadModel(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.detail || `Failed to download model: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Get download progress for active models
+ */
+export async function getDownloadProgress(): Promise<Record<string, DownloadProgress>> {
+  const response = await apiFetch(apiUrl("/api/v1/litertlm/models/download/progress"));
+  if (!response.ok) {
+    throw new Error(`Failed to get download progress: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Cancel a model download
+ */
+export async function cancelDownload(modelId: string): Promise<{ message: string }> {
+  const response = await apiFetch(apiUrl(`/api/v1/litertlm/models/download/${modelId}`), {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || `Failed to cancel download: ${response.statusText}`);
   }
   return response.json();
 }

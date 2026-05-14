@@ -12,7 +12,10 @@ import {
   getDownloadedModels,
   deleteModel,
   setActiveModel,
+  getDownloadProgress,
+  cancelDownload,
   type DownloadedModelInfo,
+  type DownloadProgress,
 } from "@/lib/litertlm-api";
 
 export default function DownloadedModels() {
@@ -23,6 +26,7 @@ export default function DownloadedModels() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [activating, setActivating] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "error" | "success" } | null>(null);
+  const [activeDownloads, setActiveDownloads] = useState<Record<string, DownloadProgress>>({});
 
   useEffect(() => {
     if (!toast) return;
@@ -30,25 +34,39 @@ export default function DownloadedModels() {
     return () => clearTimeout(timer);
   }, [toast]);
 
+  const fetchModels = async () => {
+    try {
+      const data = await getDownloadedModels();
+      setDownloadedModels(data);
+      setLoading(false);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load downloaded models");
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
+    fetchModels();
+  }, []);
+
+  useEffect(() => {
+    let lastCompletedCount = 0;
+    const interval = setInterval(async () => {
       try {
-        const data = await getDownloadedModels();
-        if (!cancelled) {
-          setDownloadedModels(data);
-          setLoading(false);
+        const progress = await getDownloadProgress();
+        setActiveDownloads(progress);
+        
+        const completedCount = Object.values(progress).filter(p => p.status === "completed").length;
+        if (completedCount > lastCompletedCount) {
+          lastCompletedCount = completedCount;
+          fetchModels();
         }
       } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Failed to load downloaded models");
-          setLoading(false);
-        }
+        console.error("Polling progress error:", e);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async (modelId: string) => {
@@ -117,7 +135,11 @@ export default function DownloadedModels() {
     );
   }
 
-  if (downloadedModels.length === 0) {
+  const downloadingTasks = Object.values(activeDownloads).filter(
+    (p) => p.status === "downloading" || p.status === "pending"
+  );
+
+  if (downloadedModels.length === 0 && downloadingTasks.length === 0) {
     return (
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 text-center">
         <p className="text-sm text-[var(--muted-foreground)]">
@@ -129,6 +151,50 @@ export default function DownloadedModels() {
 
   return (
     <div className="space-y-3">
+      {/* Active Downloads */}
+      {downloadingTasks.map((task) => (
+        <div
+          key={task.task_id}
+          className="rounded-lg border border-blue-500/50 bg-blue-50/50 p-4 dark:border-blue-500/30 dark:bg-blue-500/5"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-medium text-[var(--foreground)]">
+                Downloading {task.task_id}...
+              </h3>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
+                <div
+                  className="h-full bg-blue-500 transition-all duration-300"
+                  style={{ width: `${Math.max(0, Math.min(100, task.progress * 100))}%` }}
+                />
+              </div>
+              <div className="mt-1 flex justify-between text-xs text-[var(--muted-foreground)]">
+                <span>{Math.round(task.progress * 100)}%</span>
+                <span>
+                  {task.downloaded_bytes > 0 && task.total_bytes > 0
+                    ? `${(task.downloaded_bytes / 1024 / 1024).toFixed(1)} MB / ${(task.total_bytes / 1024 / 1024).toFixed(1)} MB`
+                    : "Starting..."}
+                </span>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center">
+              <button
+                onClick={async () => {
+                  try {
+                    await cancelDownload(task.task_id);
+                    setToast({ message: "Download cancelled", type: "success" });
+                  } catch (e) {
+                    console.error("Failed to cancel download:", e);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-red-200/60 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/10"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
       {toast && (
         <div
           className={`mb-4 rounded-xl p-4 text-sm font-medium ${
