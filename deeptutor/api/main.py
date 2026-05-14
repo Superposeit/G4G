@@ -193,15 +193,27 @@ async def selective_access_log(request, call_next):
 # We build an explicit list that covers both localhost and 127.0.0.1 variants so the
 # frontend works regardless of which loopback alias the browser resolves to.
 _frontend_port = os.getenv("FRONTEND_PORT", "3782")
-_extra_origin = os.getenv("CORS_ORIGIN", "")  # optional extra origin for deployments
+# CORS_ORIGIN: optional comma-separated list of extra allowed origins.
+# CORS_HOST: optional LAN/public IP or hostname — auto-generates an origin
+#   for that host + frontend port (e.g. CORS_HOST=192.168.100.2).
+_extra_origins_raw = os.getenv("CORS_ORIGIN", "")
+_cors_host = os.getenv("CORS_HOST", "").strip()
 _cors_origins = [
     f"http://localhost:{_frontend_port}",
     f"http://127.0.0.1:{_frontend_port}",
     "http://localhost:3000",  # common Next.js default
     "http://127.0.0.1:3000",
 ]
-if _extra_origin:
-    _cors_origins.append(_extra_origin)
+# Support comma-separated list in CORS_ORIGIN
+for _o in _extra_origins_raw.split(","):
+    _o = _o.strip()
+    if _o and _o not in _cors_origins:
+        _cors_origins.append(_o)
+# Auto-generate LAN origin from CORS_HOST
+if _cors_host:
+    _lan_origin = f"http://{_cors_host}:{_frontend_port}"
+    if _lan_origin not in _cors_origins:
+        _cors_origins.append(_lan_origin)
 
 app.add_middleware(
     CORSMiddleware,

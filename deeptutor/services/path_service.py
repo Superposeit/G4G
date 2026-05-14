@@ -231,9 +231,10 @@ class PathService:
         return self.get_notebook_dir() / "notebooks_index.json"
 
     def get_memory_dir(self) -> Path:
-        new_dir = self.workspace_root / "memory"
+        data_dir = self._user_data_dir.parent
+        new_dir = data_dir / "memory"
         old_dir = self.get_workspace_feature_dir("memory")
-        if self.workspace_root == (self.project_root / "data").resolve() and old_dir.exists():
+        if self._user_data_dir == (self._project_root / "data" / "user") and old_dir.exists():
             new_dir.mkdir(parents=True, exist_ok=True)
             for f in old_dir.iterdir():
                 if f.is_file() and f.suffix == ".md":

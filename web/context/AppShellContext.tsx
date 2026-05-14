@@ -41,6 +41,8 @@ interface AppShellContextValue {
   setActiveSessionId: (sessionId: string | null) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
@@ -49,13 +51,14 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     return getStoredTheme() ?? getSystemTheme();
   });
-  // Always start with "en" to match SSR; hydrate from localStorage after mount
-  const [language, setLanguageState] = useState<AppLanguage>("en");
+  // Always start with "es" to match SSR; hydrate from localStorage after mount
+  const [language, setLanguageState] = useState<AppLanguage>("es");
   const [activeSessionId, setActiveSessionIdState] = useState<string | null>(
     () => readStoredActiveSessionId(),
   );
   // Always start expanded to match SSR; hydrate from localStorage after mount
   const [sidebarCollapsed, setSidebarCollapsedState] = useState<boolean>(false);
+  const [mobileSidebarOpen, setMobileSidebarOpenState] = useState<boolean>(false);
 
   useEffect(() => {
     setLanguageState(readStoredLanguage());
@@ -132,6 +135,10 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
     setSidebarCollapsedState(collapsed);
   }, []);
 
+  const setMobileSidebarOpen = useCallback((open: boolean) => {
+    setMobileSidebarOpenState(open);
+  }, []);
+
   const value = useMemo<AppShellContextValue>(
     () => ({
       theme,
@@ -142,12 +149,16 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
       setActiveSessionId,
       sidebarCollapsed,
       setSidebarCollapsed,
+      mobileSidebarOpen,
+      setMobileSidebarOpen,
     }),
     [
       activeSessionId,
       language,
+      mobileSidebarOpen,
       setActiveSessionId,
       setLanguage,
+      setMobileSidebarOpen,
       setSidebarCollapsed,
       setTheme,
       sidebarCollapsed,

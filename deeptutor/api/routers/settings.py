@@ -11,6 +11,7 @@ import asyncio
 import json
 import logging
 import time
+from pathlib import Path
 from typing import Any, List, Literal, Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -34,7 +35,12 @@ def _settings_file():
     return get_path_service().get_settings_file("interface")
 
 
-def _tour_cache_file():
+TOUR_CACHE: "Path | None" = None
+
+
+def _tour_cache_file() -> "Path":
+    if TOUR_CACHE is not None:
+        return TOUR_CACHE
     return get_path_service().get_settings_dir() / ".tour_cache.json"
 
 DEFAULT_SIDEBAR_NAV_ORDER = {
@@ -169,7 +175,7 @@ def _provider_choices() -> dict[str, list[dict[str, str]]]:
         {"value": "duckduckgo", "label": "DuckDuckGo", "base_url": ""},
         {"value": "perplexity", "label": "Perplexity", "base_url": ""},
     ]
-    return {"llm": llm, "embedding": embedding, "search": search}
+    return {"llm": llm, "embedding": embedding, "search": search, "litertlm": []}
 
 
 @router.get("")

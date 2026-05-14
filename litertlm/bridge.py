@@ -42,11 +42,10 @@ from typing import Any, Dict, List, Generator, Optional
 import litert_lm
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 import uvicorn
 
-# ============================================
-# Configuration
-# ============================================
+# --- Configuration ---
 
 # Resolve project root relative to this file (litertlm/bridge.py → project root).
 # Run `python scripts/download_litertlm_model.py` to populate the default path.
@@ -59,12 +58,13 @@ _DEFAULT_MODEL_PATH = os.path.join(
 MODEL_PATH = os.environ.get("LITERTLM_MODEL_PATH", _DEFAULT_MODEL_PATH)
 HOST = os.environ.get("LITERTLM_HOST", "0.0.0.0")
 PORT = int(os.environ.get("LITERTLM_PORT", "8000"))
-MODEL_ID = os.environ.get("LITERTLM_MODEL_ID", "gemma-4-E2B-it")
+
+# These are no longer constants as they can be updated dynamically
+_current_model_id = os.environ.get("LITERTLM_MODEL_ID", "gemma-4-E2B-it")
+_current_model_path = os.environ.get("LITERTLM_MODEL_PATH", str(_DEFAULT_MODEL_PATH))
 LOG_LEVEL = os.environ.get("LITERTLM_LOG_LEVEL", "INFO")
 
-# ============================================
-# Logging Setup
-# ============================================
+# --- Logging Setup ---
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL.upper()),
@@ -72,9 +72,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("litertlm-bridge")
 
-# ============================================
-# Model Initialization
-# ============================================
+# --- Model Initialization ---
 
 # Global engine instance (lazy loaded)
 _engine: Optional[Any] = None
@@ -95,11 +93,11 @@ def get_engine() -> Any:
         if _engine is not None:
             return _engine
 
-        logger.info(f"Loading model from: {MODEL_PATH}")
+        logger.info(f"Loading model from: {_current_model_path}")
 
-        if not os.path.exists(MODEL_PATH):
+        if not os.path.exists(_current_model_path):
             raise FileNotFoundError(
-                f"Model file not found at {MODEL_PATH}. "
+                f"Model file not found at {_current_model_path}. "
                 f"Run 'python scripts/download_litertlm_model.py' to download the model."
             )
 
@@ -107,7 +105,7 @@ def get_engine() -> Any:
             # Initialize Engine (text-only for now)
             # Note: Vision and audio backends disabled due to signature limitation
             # in current litert-lm-nightly version
-            _engine = litert_lm.Engine(MODEL_PATH)
+            _engine = litert_lm.Engine(_current_model_path)
             logger.info("Model loaded successfully")
             return _engine
         except Exception as e:
@@ -115,9 +113,7 @@ def get_engine() -> Any:
             raise
 
 
-# ============================================
-# FastAPI App
-# ============================================
+# --- FastAPI App ---
 
 app = FastAPI(
     title="LiteRT-LM Bridge",
@@ -126,9 +122,7 @@ app = FastAPI(
 )
 
 
-# ============================================
-# Helper Functions
-# ============================================
+# --- Helper Functions ---
 
 def parse_multimodal_content(openai_content: str | List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
@@ -175,9 +169,7 @@ def format_error_chunk(message: str, error_type: str = "runtime_error") -> str:
     return format_sse_chunk(error_data)
 
 
-# ============================================
-# API Endpoints
-# ============================================
+# --- API Endpoints ---
 
 @app.get("/v1/models")
 async def list_models() -> Dict[str, Any]:
@@ -185,7 +177,7 @@ async def list_models() -> Dict[str, Any]:
     return {
         "object": "list",
         "data": [{
-            "id": MODEL_ID,
+            "id": _current_model_id,
             "object": "model",
             "created": int(time.time()),
             "owned_by": "litert-community"
@@ -197,7 +189,7 @@ async def list_models() -> Dict[str, Any]:
 @app.get("/v1")
 async def root() -> Dict[str, str]:
     """Root endpoint for health check."""
-    return {"status": "LiteRT-LM Multimodal Bridge is running", "model": MODEL_ID}
+    return {"status": "LiteRT-LM Multimodal Bridge is running", "model": _current_model_id}
 
 
 @app.get("/health")
@@ -208,12 +200,47 @@ async def health_check() -> Dict[str, str]:
         engine = get_engine()
         return {
             "status": "healthy",
-            "model": MODEL_ID,
-            "model_path": MODEL_PATH
+            "model": _current_model_id,
+            "model_path": _current_model_path
         }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
+
+
+class SetModelRequest(BaseModel):
+    model_path: str
+    model_id: str
+
+@app.post("/v1/models/active")
+async def set_active_model(request: SetModelRequest) -> Dict[str, str]:
+    """Change the active model dynamically without restarting."""
+    global _engine, _current_model_id, _current_model_path
+    
+    with _engine_lock:
+        if not os.path.exists(request.model_path):
+            raise HTTPException(status_code=404, detail="Model file not found")
+            
+        try:
+            logger.info(f"Switching model to: {request.model_path}")
+            # Unload old engine if exists
+            _engine = None
+            
+            # Update paths and id
+            _current_model_path = request.model_path
+            _current_model_id = request.model_id
+            
+            # Load new engine
+            _engine = litert_lm.Engine(_current_model_path)
+            
+            return {
+                "status": "success", 
+                "message": f"Successfully switched to model {request.model_id}"
+            }
+        except Exception as e:
+            logger.error(f"Failed to switch model: {e}")
+            _engine = None  # Clear broken state
+            raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/v1/chat/completions")
@@ -294,7 +321,7 @@ async def chat_completions(request: Request) -> StreamingResponse:
                                 data = {
                                     "id": f"chatcmpl-{int(time.time())}",
                                     "object": "chat.completion.chunk",
-                                    "model": MODEL_ID,
+                                    "model": _current_model_id,
                                     "choices": [{
                                         "delta": {"content": content},
                                         "finish_reason": None,
@@ -307,7 +334,7 @@ async def chat_completions(request: Request) -> StreamingResponse:
                     stop_data = {
                         "id": f"chatcmpl-{int(time.time())}",
                         "object": "chat.completion.chunk",
-                        "model": MODEL_ID,
+                        "model": _current_model_id,
                         "choices": [{"delta": {}, "finish_reason": "stop", "index": 0}]
                     }
                     yield format_sse_chunk(stop_data)
@@ -342,14 +369,12 @@ async def chat_completions(request: Request) -> StreamingResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================
-# Main Entry Point
-# ============================================
+# --- Main Entry Point ---
 
 if __name__ == "__main__":
     logger.info(f"🚀 LiteRT Multimodal Bridge starting on http://{HOST}:{PORT}")
-    logger.info(f"   Model: {MODEL_ID}")
-    logger.info(f"   Model path: {MODEL_PATH}")
+    logger.info(f"   Model: {_current_model_id}")
+    logger.info(f"   Model path: {_current_model_path}")
     logger.info(f"   Log level: {LOG_LEVEL}")
 
     uvicorn.run(app, host=HOST, port=PORT)

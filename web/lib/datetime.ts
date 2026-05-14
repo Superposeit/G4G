@@ -1,7 +1,9 @@
-export type Language = "en" | "zh";
+export type Language = "en" | "zh" | "es";
 
 export function getLocale(lang: Language): string {
-  return lang === "zh" ? "zh-CN" : "en-US";
+  if (lang === "zh") return "zh-CN";
+  if (lang === "es") return "es-ES";
+  return "en-US";
 }
 
 export function formatDate(

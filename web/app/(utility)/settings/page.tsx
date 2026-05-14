@@ -73,12 +73,13 @@ type Catalog = {
     llm: CatalogService;
     embedding: CatalogService;
     search: CatalogService;
+    litertlm: CatalogService;
   };
 };
 
 type UiSettings = {
   theme: "light" | "dark" | "glass" | "snow";
-  language: "en" | "zh";
+  language: "en" | "zh" | "es";
 };
 
 type ProviderOption = {
@@ -204,6 +205,7 @@ function defaultCatalog(): Catalog {
         profiles: [],
       },
       search: { active_profile_id: null, profiles: [] },
+      litertlm: { active_profile_id: null, profiles: [] },
     },
   };
 }
@@ -241,12 +243,12 @@ function formatContextWindowSource(
 
 function formatContextWindowUpdatedAt(
   value: string | undefined,
-  language: "en" | "zh",
+  language: "en" | "zh" | "es",
 ): string {
   if (!value) return "";
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleString(language === "zh" ? "zh-CN" : "en-US", {
+  return parsed.toLocaleString(language === "zh" ? "zh-CN" : language === "es" ? "es-ES" : "en-US", {
     dateStyle: "medium",
     timeStyle: "short",
   });
@@ -592,7 +594,7 @@ function SettingsPageContent() {
   const [theme, setTheme] = useState<"light" | "dark" | "glass" | "snow">(
     "light",
   );
-  const [language, setLanguage] = useState<"en" | "zh">("en");
+  const [language, setLanguage] = useState<"en" | "zh" | "es">("es");
   const [catalog, setCatalog] = useState<Catalog>(defaultCatalog());
   const [draft, setDraft] = useState<Catalog>(defaultCatalog());
   const [modelAccess, setModelAccess] = useState<ModelAccess | null>(null);
@@ -610,7 +612,7 @@ function SettingsPageContent() {
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [providers, setProviders] = useState<
     Record<ServiceName, ProviderOption[]>
-  >({ llm: [], embedding: [], search: [] });
+  >({ llm: [], embedding: [], search: [], litertlm: [] });
   // Most-recent capabilities snapshot from the embedding test run. Cleared
   // when the user kicks off another run, populated when the backend emits
   // the `capabilities` SSE event. Drives the source badge + "Detected: Xd"
@@ -738,7 +740,7 @@ function SettingsPageContent() {
 
   const persistUi = async (
     nextTheme: "light" | "dark" | "glass" | "snow",
-    nextLanguage: "en" | "zh",
+    nextLanguage: "en" | "zh" | "es",
   ) => {
     await apiFetch(apiUrl("/api/v1/settings/ui"), {
       method: "PUT",
@@ -755,7 +757,7 @@ function SettingsPageContent() {
     await persistUi(nextTheme, language);
   };
 
-  const updateLanguage = async (nextLanguage: "en" | "zh") => {
+  const updateLanguage = async (nextLanguage: "en" | "zh" | "es") => {
     setLanguage(nextLanguage);
     writeStoredLanguage(nextLanguage);
     await persistUi(theme, nextLanguage);
@@ -1144,7 +1146,7 @@ function SettingsPageContent() {
               {t("Language")}
             </span>
             <div className="flex gap-0.5 rounded-lg bg-[var(--muted)] p-0.5">
-              {(["en", "zh"] as const).map((v) => (
+              {(["en", "zh", "es"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => updateLanguage(v)}
@@ -1154,7 +1156,7 @@ function SettingsPageContent() {
                       : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   }`}
                 >
-                  {v === "en" ? t("language.english") : t("language.chinese")}
+                  {v === "en" ? t("language.english") : v === "zh" ? t("language.chinese") : t("language.spanish")}
                 </button>
               ))}
             </div>
@@ -1219,7 +1221,7 @@ function SettingsPageContent() {
                 const parsed = new Date(ts);
                 if (Number.isNaN(parsed.getTime())) return "";
                 return parsed.toLocaleTimeString(
-                  language === "zh" ? "zh-CN" : "en-US",
+                  language === "zh" ? "zh-CN" : language === "es" ? "es-ES" : "en-US",
                   { hour: "2-digit", minute: "2-digit" },
                 );
               })()}
@@ -1302,7 +1304,7 @@ function SettingsPageContent() {
         <div className="mb-8">
           <div className="mb-5 flex items-center justify-between">
             <div className="flex items-center gap-1">
-              {(["llm", "embedding", "search"] as const).map((service) => (
+              {SERVICES.map((service) => (
                 <button
                   key={service}
                   data-tour={`tour-${service}`}
@@ -1315,20 +1317,24 @@ function SettingsPageContent() {
                 >
                   {serviceIcon(service)}
                   {service.toUpperCase()}
-                  <span className="text-[11px] text-[var(--muted-foreground)]/60">
-                    {draft.services[service].profiles.length}
-                  </span>
+                  {service !== "litertlm" && (
+                    <span className="text-[11px] text-[var(--muted-foreground)]/60">
+                      {draft.services[service].profiles.length}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={addProfile}
-                className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2.5 py-1 text-[12px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
-              >
-                <Plus className="h-3 w-3" />
-                {t("Profile")}
-              </button>
+              {activeService !== "litertlm" && (
+                <button
+                  onClick={addProfile}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2.5 py-1 text-[12px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
+                >
+                  <Plus className="h-3 w-3" />
+                  {t("Profile")}
+                </button>
+              )}
               {activeService !== "search" && activeService !== "litertlm" && (
                 <button
                   onClick={addModel}
@@ -1341,7 +1347,8 @@ function SettingsPageContent() {
             </div>
           </div>
 
-          {activeProfile ? (
+          {activeService !== "litertlm" && (
+            activeProfile ? (
             <div className="grid grid-cols-[200px_1fr] gap-5">
               {/* ── Profile list ── */}
               <div className="space-y-2">
@@ -1350,7 +1357,7 @@ function SettingsPageContent() {
                     profile.id ===
                     draft.services[activeService].active_profile_id;
                   const activeProfileModel =
-                    activeService === "search" || activeService === "litertlm"
+                    activeService === "search"
                       ? null
                       : (profile.models.find(
                           (model) =>
@@ -1377,7 +1384,7 @@ function SettingsPageContent() {
                         mutateCatalog((next) => {
                           next.services[activeService].active_profile_id =
                             profile.id;
-                          if (activeService !== "search" && activeService !== "litertlm") {
+                          if (activeService !== "search") {
                             next.services[activeService].active_model_id =
                               profile.models[0]?.id ?? null;
                           }
@@ -1403,18 +1410,18 @@ function SettingsPageContent() {
                           <div
                             className={`${labelClass("sm")} text-[var(--muted-foreground)]/70`}
                           >
-                            {activeService === "search" || activeService === "litertlm"
+                            {activeService === "search"
                               ? t("Active provider")
                               : t("Active model")}
                           </div>
                           <div className="mt-0.5 truncate text-[12px] font-medium text-[var(--foreground)]">
-                            {activeService === "search" || activeService === "litertlm"
+                            {activeService === "search"
                               ? modelDetail
                               : modelDetail}
                           </div>
                         </div>
                       ) : (
-                        activeService !== "search" && activeService !== "litertlm" && (
+                        activeService !== "search" && (
                           <div className="mt-1 text-[11px] text-[var(--muted-foreground)]/60">
                             {t("{{count}} models", {
                               count: profile.models.length,
@@ -1456,20 +1463,20 @@ function SettingsPageContent() {
                     </div>
                     <div>
                       <div className="mb-1.5 text-[12px] text-[var(--muted-foreground)]">
-                        {activeService === "search" || activeService === "litertlm" ? t("Provider") : t("Binding")}
+                        {activeService === "search" ? t("Provider") : t("Binding")}
                       </div>
                       <div className="relative">
                         <select
                           className={selectClass}
                           value={
-                            activeService === "search" || activeService === "litertlm"
+                            activeService === "search"
                               ? activeProfile.provider || ""
                               : activeProfile.binding || ""
                           }
                           onChange={(e) => {
                             const val = e.target.value;
                             const field =
-                              activeService === "search" || activeService === "litertlm"
+                              activeService === "search"
                                 ? "provider"
                                 : "binding";
                             updateProfileField(field, val);
@@ -1488,7 +1495,7 @@ function SettingsPageContent() {
                           }}
                         >
                           <option className={selectOptionClass} value="">
-                            {activeService === "search" || activeService === "litertlm" ? t("Select provider...") : t("Select binding...")}
+                            {activeService === "search" ? t("Select provider...") : t("Select binding...")}
                           </option>
                           {(providers[activeService] || []).map((p) => (
                             <option
@@ -1602,7 +1609,7 @@ function SettingsPageContent() {
                         placeholder={t("Optional")}
                       />
                     </div>
-                    {activeService === "search" || activeService === "litertlm" ? (
+                    {activeService === "search" ? (
                       <div>
                         <div className="mb-1.5 text-[12px] text-[var(--muted-foreground)]">
                           {t("Proxy")}
@@ -1636,7 +1643,7 @@ function SettingsPageContent() {
                   </div>
                 </div>
 
-                {activeService !== "search" && activeService !== "litertlm" && (
+                {activeService !== "search" && (
                   <div className="rounded-xl border border-[var(--border)] p-5">
                     <div className="mb-4 flex items-center justify-between">
                       <div className="text-[13px] font-medium text-[var(--foreground)]">
@@ -1829,7 +1836,7 @@ function SettingsPageContent() {
             <div className="rounded-xl border border-dashed border-[var(--border)] py-12 text-center text-[13px] text-[var(--muted-foreground)]">
               {t("No profiles configured. Add a profile to start.")}
             </div>
-          )}
+          ))}
 
           {/* ── LiteRT-LM Model Management ── */}
           {activeService === "litertlm" && <LiteRTLMSection />}
