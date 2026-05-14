@@ -282,6 +282,7 @@ export default function ChatPage() {
     regenerateLastMessage,
     newSession,
     loadSession,
+    selectedSessionId,
   } = useUnifiedChat();
 
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
@@ -561,14 +562,18 @@ export default function ChatPage() {
     if (sessionIdParam === prevSessionIdParam.current) return;
     prevSessionIdParam.current = sessionIdParam;
     if (sessionIdParam) {
-      if (sessionIdParam === state.sessionId) return;
+      // Guard against the race condition where the URL updates to /chat/{id}
+      // after BIND_SERVER_SESSION, but state.sessionId hasn't propagated yet
+      // in this render cycle. selectedSessionId is derived from the same reducer
+      // so it's always in sync with the store.
+      if (sessionIdParam === state.sessionId || sessionIdParam === selectedSessionId) return;
       void loadSession(sessionIdParam).catch(() => {
         router.replace("/chat", { scroll: false });
       });
     } else {
       newSession();
     }
-  }, [sessionIdParam, loadSession, newSession, router, state.sessionId]);
+  }, [sessionIdParam, loadSession, newSession, router, state.sessionId, selectedSessionId]);
 
   // When a new session_id is assigned by the server, update the URL
   useEffect(() => {
@@ -1222,15 +1227,15 @@ export default function ChatPage() {
       data-preview-open={previewSource ? "true" : "false"}
       className="chat-preview-shell flex h-full flex-col overflow-hidden bg-[var(--background)]"
     >
-      <div className="mx-auto flex w-full max-w-[960px] items-center justify-between px-6 pt-3 pb-0">
-        <span className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--foreground)]">
+      <div className="mx-auto flex w-full max-w-[960px] items-center justify-between px-3 pt-3 pb-0 md:px-6">
+        <span className="shrink-0 text-[15px] font-semibold tracking-[-0.01em] text-[var(--foreground)]">
           {t(activeCap.label)}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <button
             onClick={() => setShowSaveModal(true)}
             disabled={!chatSavePayload}
-            className="rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)]"
+            className="hidden shrink-0 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)] md:block"
           >
             {t("Save to Notebook")}
           </button>
@@ -1238,19 +1243,19 @@ export default function ChatPage() {
             onClick={handleDownloadMarkdown}
             disabled={!state.messages.length}
             title={t("Download chat history as Markdown")}
-            className="rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)]"
+            className="hidden shrink-0 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)] md:block"
           >
             {t("Download Markdown")}
           </button>
           <button
             onClick={handleNewChat}
-            className="rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
+            className="shrink-0 rounded-lg border border-[var(--border)]/50 px-2 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] md:px-3"
           >
             {t("New chat")}
           </button>
         </div>
       </div>
-      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-6">
+      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-3 md:px-6">
         {!hasMessages ? (
           <div className="flex flex-1 min-h-0 flex-col items-center justify-center animate-fade-in">
             <div className="text-center">

@@ -48,7 +48,9 @@ export default function ModelSelector({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
   const selectedSelection = allowSystemDefault ? value : value ?? activeDefault;
   const selectedKey = llmSelectionKey(selectedSelection);
@@ -59,11 +61,54 @@ export default function ModelSelector({
     [options, selectedSelection],
   );
 
+  // Calculate fixed position from the trigger button rect so the menu
+  // escapes all stacking contexts and overflow containers.
+  const updatePosition = () => {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const menuWidth = Math.min(340, window.innerWidth - 32);
+    if (placement === "bottom") {
+      setMenuStyle({
+        position: "fixed",
+        top: rect.bottom + 6,
+        right: window.innerWidth - rect.right,
+        width: menuWidth,
+        zIndex: 9999,
+      });
+    } else {
+      setMenuStyle({
+        position: "fixed",
+        bottom: window.innerHeight - rect.top + 6,
+        right: window.innerWidth - rect.right,
+        width: menuWidth,
+        zIndex: 9999,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, placement]);
+
+  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (rootRef.current && !rootRef.current.contains(target)) {
+      if (
+        btnRef.current &&
+        !btnRef.current.contains(target) &&
+        menuRef.current &&
+        !menuRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
@@ -87,17 +132,16 @@ export default function ModelSelector({
     ? `${selectedOption.profile_name} | ${providerLabel(selectedOption)}`
     : allowSystemDefault && !selectedSelection
       ? defaultDetail
-    : error
-      ? t("Could not load models")
-      : options.length === 0
-        ? t("No configured models")
-        : t("Choose a model");
-  const menuPlacementClass =
-    placement === "bottom" ? "top-full mt-1.5" : "bottom-full mb-1.5";
+      : error
+        ? t("Could not load models")
+        : options.length === 0
+          ? t("No configured models")
+          : t("Choose a model");
 
   return (
-    <div ref={rootRef} className="relative">
+    <div className="relative">
       <button
+        ref={btnRef}
         type="button"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
@@ -126,7 +170,9 @@ export default function ModelSelector({
 
       {open && !disabled && (
         <div
-          className={`absolute right-0 z-50 ${menuPlacementClass} w-[min(340px,calc(100vw-32px))] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--popover)] shadow-lg backdrop-blur-md`}
+          ref={menuRef}
+          style={menuStyle}
+          className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--popover)] shadow-lg backdrop-blur-md"
         >
           <div className="border-b border-[var(--border)]/50 px-3 py-2">
             <div className="text-[12px] font-semibold text-[var(--foreground)]">
