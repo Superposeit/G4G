@@ -375,7 +375,7 @@ export default memo(function ChatComposer({
   return (
     <div
       ref={composerRef}
-      className={`relative z-20 mx-auto w-full shrink-0 pb-5 ${hasMessages ? "pt-1" : ""}`}
+      className={`relative z-20 mx-auto w-full shrink-0 pb-4 md:pb-5 ${hasMessages ? "pt-1" : ""}`}
     >
       {hasMessages && (
         <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-transparent to-[var(--background)]/72" />
@@ -634,6 +634,8 @@ export default memo(function ChatComposer({
 
           <div className="border-t border-[var(--border)]/35 px-3 py-2">
             <div className="flex items-center gap-2">
+              {/* ---- Left: scrollable toolbar controls ---- */}
+              <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto scrollbar-none">
               <button
                 ref={capBtnRef}
                 onClick={() => onSetCapMenuOpen((v) => !v)}
@@ -844,8 +846,9 @@ export default memo(function ChatComposer({
                   )}
                 </div>
               </div>
-
-              <div className="ml-auto flex shrink-0 items-center gap-1.5">
+              </div>
+              {/* ---- Right: always-visible model + send ---- */}
+              <div className="flex shrink-0 items-center gap-1.5">
                 <ModelSelector
                   options={llmOptions}
                   activeDefault={activeLLMDefault}
@@ -864,7 +867,7 @@ export default memo(function ChatComposer({
                       ? t("Select Knowledge Base")
                       : t("Enable Knowledge Base source first")
                   }
-                  className={`h-[28px] appearance-none rounded-full border bg-transparent py-0 pl-2.5 pr-5 text-[11px] outline-none transition-colors ${
+                  className={`hidden h-[28px] appearance-none rounded-full border bg-transparent py-0 pl-2.5 pr-5 text-[11px] outline-none transition-colors md:inline-block ${
                     ragActive
                       ? "cursor-pointer border-[var(--border)]/40 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:text-[var(--foreground)]"
                       : "cursor-not-allowed border-transparent text-[var(--border)]"
