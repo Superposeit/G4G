@@ -18,7 +18,7 @@
 # Run on the build platform natively (not under QEMU emulation).
 # The output is platform-independent static assets (JS/HTML/CSS),
 # so there is no need to cross-compile this stage.
-FROM --platform=$BUILDPLATFORM node:22-slim AS frontend-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1 AS frontend-builder
 
 WORKDIR /app/web
 
@@ -32,12 +32,10 @@ ARG APP_VERSION=""
 ENV APP_VERSION=$APP_VERSION
 
 # Copy package files first for better caching
-COPY web/package.json web/package-lock.json* ./
+COPY web/package.json web/bun.lock* ./
 
 # Install dependencies with generous timeout for CI environments
-RUN npm config set fetch-timeout 600000 && \
-    npm config set fetch-retries 5 && \
-    npm ci --legacy-peer-deps
+RUN bun install --frozen-lockfile
 
 # Copy frontend source code
 COPY web/ ./
@@ -48,7 +46,7 @@ RUN echo "NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__" > .env.loca
 
 # Build Next.js for production with standalone output
 # This allows runtime environment variable injection
-RUN npm run build
+RUN bun run build
 
 # ============================================
 # Stage 1b: Node Runtime for Target Platform

@@ -3,6 +3,7 @@
 import { Cpu, HardDrive } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import HardwareSpecsCard from "./HardwareSpecsCard";
+import HuggingFaceTokenCard from "./HuggingFaceTokenCard";
 import ModelCatalog from "./ModelCatalog";
 import DownloadedModels from "./DownloadedModels";
 
@@ -20,6 +21,17 @@ export default function LiteRTLMSection() {
           </h2>
         </div>
         <HardwareSpecsCard />
+      </section>
+
+      {/* Hugging Face Auth */}
+      <section>
+        <div className="mb-4 flex items-center gap-2">
+          <Cpu className="h-5 w-5 text-[var(--muted-foreground)]" />
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            Hugging Face Access
+          </h2>
+        </div>
+        <HuggingFaceTokenCard />
       </section>
 
       {/* Model Catalog */}
