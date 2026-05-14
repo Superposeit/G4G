@@ -119,7 +119,7 @@ export default function SpineEditor({
   return (
     <div className="flex h-full flex-col">
       <header className="border-b border-[var(--border)] bg-[var(--card)]/60 px-6 py-4">
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
+        <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
           {t("Review the chapter spine")}
         </h2>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">

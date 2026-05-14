@@ -408,7 +408,7 @@ export default function BookCreator({
   return (
     <div className="mx-auto w-full max-w-2xl space-y-5 p-6">
       <div className="space-y-1.5">
-        <h1 className="text-2xl font-semibold text-[var(--foreground)]">
+        <h1 className="font-display text-2xl font-semibold text-[var(--foreground)]">
           {t("Create a new book")}
         </h1>
         <p className="text-sm text-[var(--muted-foreground)]">
@@ -747,7 +747,7 @@ export default function BookCreator({
       {currentProposal && onConfirmProposal && (
         <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
           <div>
-            <h2 className="text-base font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-base font-semibold text-[var(--foreground)]">
               {t("Proposal")}
             </h2>
             <p className="text-xs text-[var(--muted-foreground)]">

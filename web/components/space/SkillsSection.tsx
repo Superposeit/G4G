@@ -618,7 +618,7 @@ export default function SkillsSection() {
             <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
               <div className="flex items-center gap-2">
                 <Wand2 size={14} className="text-[var(--muted-foreground)]" />
-                <h3 className="text-[14px] font-semibold text-[var(--foreground)]">
+                <h3 className="font-display text-[14px] font-semibold text-[var(--foreground)]">
                   {editor.mode === "create" ? t("New skill") : t("Edit skill")}
                 </h3>
               </div>

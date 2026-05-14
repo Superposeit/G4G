@@ -139,7 +139,7 @@ export default function QuestionBankPicker({
               <ClipboardList className="h-3 w-3" />
               {t("Question Bank Reference")}
             </div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               {t("Select Question Bank Entries")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

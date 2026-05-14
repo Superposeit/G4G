@@ -116,6 +116,7 @@ function getActiveProfile(
   serviceName: ServiceName,
 ): CatalogProfile | null {
   const service = catalog.services[serviceName];
+  if (!service) return null;
   return (
     service.profiles.find(
       (profile) => profile.id === service.active_profile_id,
@@ -131,6 +132,7 @@ function getActiveModel(
 ): CatalogModel | null {
   if (serviceName === "search" || serviceName === "litertlm") return null;
   const service = catalog.services[serviceName];
+  if (!service) return null;
   const profile = getActiveProfile(catalog, serviceName);
   if (!profile) return null;
   return (
@@ -1056,7 +1058,7 @@ function SettingsPageContent() {
         {/* ── Header ── */}
         <div className="mb-6 flex items-start justify-between">
           <div>
-            <h1 className="text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
+            <h1 className="font-display text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
               {t("Settings")}
             </h1>
             {toast ? (

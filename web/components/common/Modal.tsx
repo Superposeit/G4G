@@ -79,7 +79,7 @@ export default function Modal({
         {/* Header */}
         {(title || titleIcon || showCloseButton) && (
           <div className="p-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
-            <h3 className="font-bold text-[var(--foreground)] flex items-center gap-2">
+            <h3 className="font-display font-bold text-[var(--foreground)] flex items-center gap-2">
               {titleIcon}
               {title}
             </h3>

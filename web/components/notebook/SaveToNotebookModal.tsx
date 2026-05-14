@@ -384,7 +384,7 @@ export default function SaveToNotebookModal({
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--primary)]">
               {t("Notebook Output")}
             </div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               {t("Save to Notebook")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

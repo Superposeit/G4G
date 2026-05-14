@@ -97,7 +97,7 @@ export default function KnowledgeBaseList({
       <div className="space-y-2.5 px-3 pb-2 pt-3">
         <div className="flex items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-[13px] font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-[13px] font-semibold text-[var(--foreground)]">
               {t("Knowledge Bases")}
             </h2>
             <span className="rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[10px] text-[var(--muted-foreground)]">

@@ -124,7 +124,7 @@ export default function SkillsPicker({
               <Wand2 className="h-3 w-3" />
               {t("Skills Reference")}
             </div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
               {t("Select Skills")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

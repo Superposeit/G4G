@@ -133,7 +133,7 @@ export default function PageReader({
           <div className="min-w-0 flex-1">
             <h1
               className={[
-                "font-semibold leading-tight tracking-tight text-[var(--foreground)] transition-all duration-200",
+                "font-display font-semibold leading-tight tracking-tight text-[var(--foreground)] transition-all duration-200",
                 headerCollapsed ? "truncate text-[15px]" : "text-[26px]",
               ].join(" ")}
               title={page.title || t("Untitled chapter")}

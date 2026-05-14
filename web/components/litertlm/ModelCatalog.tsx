@@ -178,7 +178,7 @@ export default function ModelCatalog() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-medium text-[var(--foreground)]">
+                      <h3 className="font-display text-sm font-medium text-[var(--foreground)]">
                         {model.name}
                       </h3>
                       {downloaded && (

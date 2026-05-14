@@ -72,7 +72,7 @@ export default function ResearchOutlineEditor({
     <div className="my-2 rounded-lg border border-[var(--border)]/30 bg-[var(--background)] shadow-sm">
       <div className="border-b border-[var(--border)]/20 px-4 py-2.5">
         <div className="flex items-center justify-between">
-          <h3 className="text-[13px] font-semibold text-[var(--foreground)]">
+          <h3 className="font-display text-[13px] font-semibold text-[var(--foreground)]">
             {t("Research Outline")}
           </h3>
           {statusLabel && (
