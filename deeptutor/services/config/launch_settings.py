@@ -11,7 +11,7 @@ from .env_store import EnvStore
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_BACKEND_PORT = 8001
 DEFAULT_FRONTEND_PORT = 3782
-DEFAULT_LANGUAGE = "en"
+DEFAULT_LANGUAGE = "es"
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +53,8 @@ def _normalize_language(value: Any) -> str | None:
         return "en"
     if language in {"zh", "cn", "chinese"} or language.startswith("zh_"):
         return "zh"
+    if language in {"es", "spanish"} or language.startswith("es_"):
+        return "es"
     return None
 
 

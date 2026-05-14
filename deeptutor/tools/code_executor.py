@@ -18,7 +18,7 @@ import sys
 import time
 from typing import Any
 
-from deeptutor.services.path_service import get_path_service
+from deeptutor.services.path_service import PathService, get_path_service
 
 RUN_CODE_WORKSPACE_ENV = "RUN_CODE_WORKSPACE"
 RUN_CODE_ALLOWED_ROOTS_ENV = "RUN_CODE_ALLOWED_ROOTS"
@@ -408,7 +408,7 @@ def _resolve_task_workspace(
     if not identifier:
         return None
 
-    path_service = get_path_service()
+    path_service = PathService.get_instance()
     task_root = path_service.get_task_workspace(feature_name, identifier)
     return task_root / "code_runs"
 
