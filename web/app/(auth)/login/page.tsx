@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import { login, fetchAuthStatus, checkIsFirstUser } from "@/lib/auth";
+import { checkIsFirstUser, fetchAuthStatus, login } from "@/lib/auth";
 
 function LoginPageContent() {
   const { t } = useTranslation();
@@ -20,13 +21,11 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // If already authenticated, skip login
     fetchAuthStatus().then((status) => {
       if (status?.authenticated) {
         router.replace(next);
         return;
       }
-      // No users registered yet — send straight to the registration page
       checkIsFirstUser().then((first) => {
         if (first) router.replace("/register");
       });
@@ -50,108 +49,109 @@ function LoginPageContent() {
 
   return (
     <div className="w-full max-w-sm">
+<<<<<<< HEAD
       {/* Logo / Title */}
       <div className="text-center mb-8">
         <h1 className="font-display text-2xl font-semibold text-[var(--foreground)] tracking-tight">
           DeepTutor
+=======
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--primary)]/22 bg-[var(--card)]/80 shadow-[0_12px_30px_rgba(8,19,54,0.16)]">
+          <Image
+            src="/educat-tutorrd-logo-v3.svg"
+            alt="EducaT TutorRD"
+            width={48}
+            height={48}
+            unoptimized
+            className="h-12 w-auto"
+            priority
+          />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
+          EducaT TutorRD
+>>>>>>> f61abce (Add new SVG logos for Educat Tutor and update existing logo file)
         </h1>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           {t("Sign in to your account")}
         </p>
       </div>
 
-      {/* Registered success notice */}
       {registered && (
-        <div className="mb-4 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-600 dark:text-green-400">
+        <div className="mb-4 rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/10 px-4 py-3 text-sm text-[var(--foreground)]">
           {t("Account created! Sign in to continue.")}
         </div>
       )}
 
-      {/* Card */}
-      <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm px-8 py-8">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
+        <div className="px-8 py-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label
+                htmlFor="username"
+                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
+              >
+                {t("Email")}
+              </label>
+              <input
+                id="username"
+                type="email"
+                autoComplete="email"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-1.5 block text-sm font-medium text-[var(--foreground)]"
+              >
+                {t("Password")}
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3.5 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                placeholder="********"
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-500">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90 active:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {t("Email")}
-            </label>
-            <input
-              id="username"
-              type="email"
-              autoComplete="email"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--border)]
-                         bg-[var(--background)] text-[var(--foreground)]
-                         placeholder:text-[var(--muted-foreground)]
-                         focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent
-                         transition-shadow text-sm"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          {/* Password */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
-            >
-              {t("Password")}
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-[var(--border)]
-                         bg-[var(--background)] text-[var(--foreground)]
-                         placeholder:text-[var(--muted-foreground)]
-                         focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent
-                         transition-shadow text-sm"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {/* Error message */}
-          {error && (
-            <p className="text-sm text-red-500 bg-red-500/10 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg font-medium text-sm
-                       bg-[var(--primary)] text-[var(--primary-foreground)]
-                       hover:opacity-90 active:opacity-80
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-opacity"
-          >
-            {loading ? t("Signing in…") : t("Sign in")}
-          </button>
-        </form>
+              {loading ? t("Signing in…") : t("Sign in")}
+            </button>
+          </form>
+        </div>
       </div>
 
       <p className="mt-6 text-center text-sm text-[var(--muted-foreground)]">
         {t("Don't have an account?")}{" "}
         <Link
           href="/register"
-          className="text-[var(--primary)] hover:underline font-medium"
+          className="font-medium text-[var(--primary)] hover:underline"
         >
           {t("Create one")}
         </Link>
       </p>
 
       <p className="mt-3 text-center text-xs text-[var(--muted-foreground)]">
-        DeepTutor · Agent-Native Learning
+        EducaT TutorRD
       </p>
     </div>
   );

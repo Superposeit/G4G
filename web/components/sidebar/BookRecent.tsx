@@ -16,13 +16,13 @@ interface RecentBook {
 }
 
 const STATUS_DOT: Record<string, string> = {
-  ready: "bg-emerald-400",
-  partial: "bg-amber-400",
-  generating: "bg-sky-400",
-  planning: "bg-sky-400",
+  ready: "bg-[var(--foreground)]/80",
+  partial: "bg-[var(--primary)]/80",
+  generating: "bg-[var(--primary)]",
+  planning: "bg-[var(--primary)]",
   pending: "bg-[var(--muted-foreground)]/30",
   draft: "bg-[var(--muted-foreground)]/30",
-  spine_ready: "bg-violet-400",
+  spine_ready: "bg-[var(--foreground)]/65",
   error: "bg-rose-400",
 };
 

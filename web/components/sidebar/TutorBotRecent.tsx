@@ -49,7 +49,7 @@ export function TutorBotRecent({ collapsed = false }: { collapsed?: boolean }) {
         >
           <div className="relative shrink-0">
             {bot.running ? (
-              <span className="block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="block h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
             ) : (
               <span className="block h-1.5 w-1.5 rounded-full bg-[var(--muted-foreground)]/25" />
             )}

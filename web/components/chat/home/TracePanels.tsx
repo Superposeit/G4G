@@ -1250,10 +1250,10 @@ export function StreamingStatus({
     mode === "tool_using"
       ? t("Tool using…")
       : mode === "responding"
-        ? t("DeepTutor responding…")
+        ? t("EducaT TutorRD responding…")
         : mode === "responded"
-          ? t("DeepTutor responded.")
-          : t("DeepTutor reasoning…");
+          ? t("EducaT TutorRD responded.")
+          : t("EducaT TutorRD reasoning…");
 
   // Single turn-level clock. Ticks every second while the turn is in
   // flight and freezes on the final elapsed time once the answer ends —

@@ -22,7 +22,7 @@ export function VersionBadge({ collapsed = false }: VersionBadgeProps) {
       target="_blank"
       rel="noreferrer noopener"
       title={displayTag}
-      className="group/ver flex min-w-0 flex-1 items-center rounded-lg px-3 py-1.5 text-[11px] font-mono tabular-nums tracking-tight text-[var(--muted-foreground)]/55 transition-colors hover:bg-[var(--background)]/50 hover:text-[var(--muted-foreground)]"
+      className="group/ver flex min-w-0 flex-1 items-center rounded-lg px-3 py-1.5 text-[11px] font-mono tabular-nums tracking-tight text-[var(--muted-foreground)]/55 transition-colors hover:bg-[var(--primary)]/12 hover:text-[var(--foreground)]"
     >
       <span className="truncate leading-none decoration-[var(--muted-foreground)]/40 decoration-dotted underline-offset-[3px] group-hover/ver:underline">
         {displayTag}

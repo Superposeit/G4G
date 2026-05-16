@@ -32,15 +32,15 @@ interface SessionListProps {
 function statusColor(status?: SessionRuntimeStatus): string {
   switch (status) {
     case "running":
-      return "bg-blue-500";
+      return "bg-[var(--primary)]";
     case "completed":
-      return "bg-emerald-400";
+      return "bg-[var(--foreground)]/80";
     case "failed":
       return "bg-rose-500";
     case "rejected":
       return "bg-fuchsia-500";
     case "cancelled":
-      return "bg-amber-500";
+      return "bg-[var(--primary)]/65";
     default:
       return "bg-[var(--muted-foreground)]/25";
   }
@@ -52,15 +52,15 @@ function StatusIndicator({ status }: { status?: SessionRuntimeStatus }) {
   if (status === "running") {
     return (
       <span className="relative ml-1.5 inline-flex shrink-0">
-        <span className="session-pulse absolute inline-flex h-2 w-2 rounded-full bg-blue-400/60" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+        <span className="session-pulse absolute inline-flex h-2 w-2 rounded-full bg-[var(--primary)]/45" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--primary)]" />
       </span>
     );
   }
 
   if (status === "completed") {
     return (
-      <span className="ml-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-emerald-400/50 ring-1 ring-emerald-400/10" />
+      <span className="ml-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-[var(--foreground)]/72 ring-1 ring-[var(--foreground)]/12" />
     );
   }
 
@@ -78,7 +78,7 @@ function StatusIndicator({ status }: { status?: SessionRuntimeStatus }) {
 
   if (status === "cancelled") {
     return (
-      <span className="ml-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-amber-500/70 ring-1 ring-amber-500/20" />
+      <span className="ml-1.5 inline-flex h-2 w-2 shrink-0 rounded-full bg-[var(--primary)]/65 ring-1 ring-[var(--primary)]/18" />
     );
   }
 
@@ -211,7 +211,7 @@ export default function SessionList({
                   <span
                     className={`block h-1.5 w-1.5 shrink-0 rounded-full ${
                       active
-                        ? "bg-[var(--foreground)]/60"
+                        ? "bg-[var(--primary)]"
                         : statusColor(session.status)
                     }`}
                   />
