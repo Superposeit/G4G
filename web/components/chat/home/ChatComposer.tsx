@@ -387,7 +387,11 @@ export default memo(function ChatComposer({
   return (
     <div
       ref={composerRef}
+<<<<<<< HEAD
       className={`relative z-20 mx-auto w-full shrink-0 pb-4 md:pb-5 ${hasMessages ? "pt-1" : ""}`}
+=======
+      className={`relative z-20 mx-auto w-full shrink-0 pb-0 md:pb-5 ${hasMessages ? "pt-1" : ""}`}
+>>>>>>> aa325de (feat: branding changes and mobile responsiveness)
     >
       {hasMessages && (
         <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-transparent to-[var(--background)]/72" />

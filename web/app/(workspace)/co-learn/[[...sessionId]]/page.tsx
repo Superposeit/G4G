@@ -29,6 +29,7 @@ import {
   useUnifiedChat,
 } from "@/context/UnifiedChatContext";
 import { useChatAutoScroll } from "@/hooks/useChatAutoScroll";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { useMeasuredHeight } from "@/hooks/useMeasuredHeight";
 import {
   MAX_ATTACHMENT_BYTES,
@@ -163,6 +164,7 @@ export default function CoLearnPage() {
   const { t } = useTranslation();
   const sessionIdParam = params.sessionId?.[0] ?? null;
   const { setActiveSessionId, language: appLanguage } = useAppShell();
+  const isMobile = useIsMobileViewport();
 
   const {
     state,
@@ -219,7 +221,8 @@ export default function CoLearnPage() {
   /* ---------------- Composed values ---------------- */
 
   const hasMessages = state.messages.length > 0;
-  const { ref: composerRef } = useMeasuredHeight<HTMLDivElement>();
+  const { ref: composerRef, height: composerHeight } =
+    useMeasuredHeight<HTMLDivElement>();
 
   // ``activeCap`` is just a placeholder for ChatComposer's prop schema; the
   // composer never renders it in auto mode (capability label area is replaced
@@ -619,7 +622,16 @@ export default function CoLearnPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-6">
+      <div
+        className="mx-auto flex w-full max-w-[960px] min-h-0 flex-1 flex-col overflow-hidden px-4 md:px-6"
+        style={
+          isMobile
+            ? {
+                paddingBottom: `calc(${composerHeight}px + env(safe-area-inset-bottom) + 16px)`,
+              }
+            : undefined
+        }
+      >
         {!hasMessages ? (
           <div className="flex flex-1 min-h-0 flex-col items-center justify-center animate-fade-in">
             <div className="text-center">
@@ -638,9 +650,11 @@ export default function CoLearnPage() {
             ref={messagesContainerRef}
             data-chat-scroll-root="true"
             onScroll={handleMessagesScroll}
-            className="mx-auto w-full flex-1 min-h-0 space-y-7 overflow-y-auto pr-4 [scrollbar-gutter:stable] pt-0"
+            className="mx-auto w-full min-h-0 flex-1 space-y-7 overflow-y-auto pr-2 md:pr-4 [scrollbar-gutter:stable] pt-0"
             style={{
-              paddingBottom: "4px",
+              paddingBottom: isMobile
+                ? `calc(${composerHeight}px + env(safe-area-inset-bottom) + 20px)`
+                : "4px",
               WebkitMaskImage:
                 "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)",
               maskImage:
@@ -662,89 +676,93 @@ export default function CoLearnPage() {
           </div>
         )}
 
-        <ChatComposer
-          composerRef={composerRef}
-          capMenuRef={capMenuRef}
-          capBtnRef={capBtnRef}
-          toolMenuRef={toolMenuRef}
-          toolBtnRef={toolBtnRef}
-          spaceMenuRef={spaceMenuRef}
-          spaceBtnRef={spaceBtnRef}
-          kbMenuRef={kbMenuRef}
-          kbBtnRef={kbBtnRef}
-          dragCounter={dragCounter}
-          dragging={dragging}
-          capMenuOpen={capMenuOpen}
-          toolMenuOpen={false}
-          spaceMenuOpen={false}
-          kbMenuOpen={kbMenuOpen}
-          hasMessages={hasMessages}
-          attachments={attachments}
-          attachmentError={attachmentError}
-          activeCap={activeCap}
-          visibleTools={[]}
-          selectedTools={EMPTY_TOOL_SET}
-          knowledgeBases={knowledgeBases}
-          llmOptions={llmOptions}
-          activeLLMDefault={activeLLMDefault}
-          llmSelection={state.llmSelection}
-          llmOptionsLoading={llmOptionsLoading}
-          llmOptionsError={llmOptionsError}
-          selectedBookReferences={EMPTY_BOOKS}
-          selectedNotebookRecords={EMPTY_NOTEBOOKS}
-          selectedHistorySessions={EMPTY_HISTORY}
-          selectedQuestionEntries={EMPTY_QUESTIONS}
-          notebookReferenceGroups={EMPTY_NOTEBOOK_GROUPS}
-          selectedSkills={EMPTY_SKILLS}
-          skillsAutoMode={false}
-          selectedMemoryFiles={EMPTY_MEMORY}
-          selectedKnowledgeBases={state.knowledgeBases}
-          isStreaming={state.isStreaming}
-          isResearchMode={false}
-          isMathAnimatorMode={false}
-          isVisualizeMode={false}
-          isAutoMode={true}
-          autoEnabledCaps={autoEnabledCaps}
-          researchConfigSources={EMPTY_RESEARCH_SOURCE_LIST}
-          capabilityNeedsConfig={false}
-          capabilityConfigConfirmed={true}
-          onRequestConfigConfirm={NOOP}
-          capabilities={CO_LEARN_CAPABILITIES}
-          researchSources={EMPTY_RESEARCH_SOURCES}
-          onSetCapMenuOpen={setCapMenuOpen}
-          onSetToolMenuOpen={NOOP}
-          onSetSpaceMenuOpen={NOOP}
-          onSetKbMenuOpen={setKbMenuOpen}
-          onToggleAutoCap={handleToggleAutoCap}
-          onToggleKB={handleToggleKB}
-          onSelectLLM={setLLMSelection}
-          onSelectNotebookPicker={NOOP}
-          onSelectBookPicker={NOOP}
-          onSelectHistoryPicker={NOOP}
-          onSelectQuestionBankPicker={NOOP}
-          onSelectSkillsPicker={NOOP}
-          onSelectMemoryPicker={NOOP}
-          onToggleTool={NOOP}
-          onToggleSkill={NOOP}
-          onSetSkillsAuto={NOOP}
-          onToggleMemoryFile={NOOP}
-          onToggleResearchSource={NOOP}
-          onSend={handleSend}
-          onRemoveAttachment={removeAttachment}
-          onPreviewAttachment={handlePreviewPendingAttachment}
-          onRemoveHistory={NOOP}
-          onRemoveBookReference={NOOP}
-          onRemoveNotebook={NOOP}
-          onRemoveQuestion={NOOP}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onPaste={handlePaste}
-          onAddFiles={(files) => void handleAddFiles(files)}
-          onSelectCapability={NOOP}
-          onCancelStreaming={cancelStreamingTurn}
-        />
+        <div className="mobile-docked-composer fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)]/35 bg-[var(--background)]/94 px-3 pt-2 backdrop-blur-md md:static md:z-auto md:border-t-0 md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none">
+          <div className="mx-auto w-full max-w-[960px] px-1 md:px-0">
+            <ChatComposer
+              composerRef={composerRef}
+              capMenuRef={capMenuRef}
+              capBtnRef={capBtnRef}
+              toolMenuRef={toolMenuRef}
+              toolBtnRef={toolBtnRef}
+              spaceMenuRef={spaceMenuRef}
+              spaceBtnRef={spaceBtnRef}
+              kbMenuRef={kbMenuRef}
+              kbBtnRef={kbBtnRef}
+              dragCounter={dragCounter}
+              dragging={dragging}
+              capMenuOpen={capMenuOpen}
+              toolMenuOpen={false}
+              spaceMenuOpen={false}
+              kbMenuOpen={kbMenuOpen}
+              hasMessages={hasMessages}
+              attachments={attachments}
+              attachmentError={attachmentError}
+              activeCap={activeCap}
+              visibleTools={[]}
+              selectedTools={EMPTY_TOOL_SET}
+              knowledgeBases={knowledgeBases}
+              llmOptions={llmOptions}
+              activeLLMDefault={activeLLMDefault}
+              llmSelection={state.llmSelection}
+              llmOptionsLoading={llmOptionsLoading}
+              llmOptionsError={llmOptionsError}
+              selectedBookReferences={EMPTY_BOOKS}
+              selectedNotebookRecords={EMPTY_NOTEBOOKS}
+              selectedHistorySessions={EMPTY_HISTORY}
+              selectedQuestionEntries={EMPTY_QUESTIONS}
+              notebookReferenceGroups={EMPTY_NOTEBOOK_GROUPS}
+              selectedSkills={EMPTY_SKILLS}
+              skillsAutoMode={false}
+              selectedMemoryFiles={EMPTY_MEMORY}
+              selectedKnowledgeBases={state.knowledgeBases}
+              isStreaming={state.isStreaming}
+              isResearchMode={false}
+              isMathAnimatorMode={false}
+              isVisualizeMode={false}
+              isAutoMode={true}
+              autoEnabledCaps={autoEnabledCaps}
+              researchConfigSources={EMPTY_RESEARCH_SOURCE_LIST}
+              capabilityNeedsConfig={false}
+              capabilityConfigConfirmed={true}
+              onRequestConfigConfirm={NOOP}
+              capabilities={CO_LEARN_CAPABILITIES}
+              researchSources={EMPTY_RESEARCH_SOURCES}
+              onSetCapMenuOpen={setCapMenuOpen}
+              onSetToolMenuOpen={NOOP}
+              onSetSpaceMenuOpen={NOOP}
+              onSetKbMenuOpen={setKbMenuOpen}
+              onToggleAutoCap={handleToggleAutoCap}
+              onToggleKB={handleToggleKB}
+              onSelectLLM={setLLMSelection}
+              onSelectNotebookPicker={NOOP}
+              onSelectBookPicker={NOOP}
+              onSelectHistoryPicker={NOOP}
+              onSelectQuestionBankPicker={NOOP}
+              onSelectSkillsPicker={NOOP}
+              onSelectMemoryPicker={NOOP}
+              onToggleTool={NOOP}
+              onToggleSkill={NOOP}
+              onSetSkillsAuto={NOOP}
+              onToggleMemoryFile={NOOP}
+              onToggleResearchSource={NOOP}
+              onSend={handleSend}
+              onRemoveAttachment={removeAttachment}
+              onPreviewAttachment={handlePreviewPendingAttachment}
+              onRemoveHistory={NOOP}
+              onRemoveBookReference={NOOP}
+              onRemoveNotebook={NOOP}
+              onRemoveQuestion={NOOP}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onPaste={handlePaste}
+              onAddFiles={(files) => void handleAddFiles(files)}
+              onSelectCapability={NOOP}
+              onCancelStreaming={cancelStreamingTurn}
+            />
+          </div>
+        </div>
       </div>
       <FilePreviewDrawer
         open={previewSource !== null}

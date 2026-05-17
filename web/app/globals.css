@@ -624,6 +624,24 @@
   animation: session-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+.mobile-app-shell-offset {
+  padding-top: calc(env(safe-area-inset-top) + 3.5rem);
+}
+
+.mobile-docked-composer {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+}
+
+@media (min-width: 768px) {
+  .mobile-app-shell-offset {
+    padding-top: 0;
+  }
+
+  .mobile-docked-composer {
+    padding-bottom: 0;
+  }
+}
+
 /* ----- Chat shell ↔ file preview drawer ---------------------------------
    Squeezes the chat column when the drawer is open. The transition
    timing here MUST match FilePreviewDrawer's transform transition so the

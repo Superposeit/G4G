@@ -16,6 +16,7 @@ import {
   resolveKbStatus,
   type KnowledgeBase,
 } from "@/lib/knowledge-helpers";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import type { TaskState } from "@/hooks/useKnowledgeProgress";
 import { useCollapsiblePanel } from "@/hooks/useCollapsiblePanel";
 import KnowledgeBaseListItem from "./KnowledgeBaseListItem";
@@ -41,6 +42,7 @@ export default function KnowledgeBaseList({
 }: KnowledgeBaseListProps) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
+  const isMobile = useIsMobileViewport();
   const { collapsed, toggle } = useCollapsiblePanel("knowledge-kb-list");
 
   const filtered = useMemo(() => {
@@ -49,7 +51,7 @@ export default function KnowledgeBaseList({
     return kbs.filter((kb) => kb.name.toLowerCase().includes(q));
   }, [kbs, query]);
 
-  if (collapsed) {
+  if (collapsed && !isMobile) {
     return (
       <aside className="flex h-full w-[48px] shrink-0 flex-col items-center gap-1 border-r border-[var(--border)] bg-[var(--card)] py-2">
         <button
@@ -93,7 +95,7 @@ export default function KnowledgeBaseList({
   }
 
   return (
-    <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--card)]">
+    <aside className="flex h-full w-full flex-1 flex-col border-b border-[var(--border)] bg-[var(--card)] md:w-[260px] md:shrink-0 md:border-b-0 md:border-r">
       <div className="space-y-2.5 px-3 pb-2 pt-3">
         <div className="flex items-center justify-between gap-2 px-1">
           <div className="flex items-center gap-2">
@@ -109,7 +111,7 @@ export default function KnowledgeBaseList({
             onClick={toggle}
             title={t("Collapse")}
             aria-label={t("Collapse")}
-            className="rounded-md p-1 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+            className="hidden rounded-md p-1 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)] md:inline-flex"
           >
             <PanelLeftClose size={13} strokeWidth={1.7} />
           </button>

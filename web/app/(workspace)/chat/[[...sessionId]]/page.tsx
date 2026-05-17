@@ -62,6 +62,7 @@ import {
   MAX_TOTAL_ATTACHMENT_BYTES,
 } from "@/lib/doc-attachments";
 import { useChatAutoScroll } from "@/hooks/useChatAutoScroll";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import { useMeasuredHeight } from "@/hooks/useMeasuredHeight";
 import {
   loadCapabilityPlaygroundConfigs,
@@ -309,6 +310,7 @@ export default function ChatPage() {
   const { t } = useTranslation();
   const sessionIdParam = params.sessionId?.[0] ?? null;
   const { setActiveSessionId, language: appLanguage } = useAppShell();
+  const isMobile = useIsMobileViewport();
 
   const {
     state,
@@ -1582,7 +1584,7 @@ export default function ChatPage() {
 =======
       <div
         ref={headerRef}
-        className="mx-auto flex w-full max-w-[960px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-6 pt-3 pb-0"
+        className="mx-auto flex w-full max-w-[960px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 pt-3 pb-0 md:px-6"
       >
         <span className="min-w-0 flex-1 truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--foreground)]">
           {t(activeCap.label)}
@@ -1641,7 +1643,20 @@ export default function ChatPage() {
 >>>>>>> 3d5c3a1 (improve chat)
         </div>
       </div>
+<<<<<<< HEAD
       <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-3 md:px-6">
+=======
+      <div
+        className="mx-auto flex w-full max-w-[960px] min-h-0 flex-1 flex-col overflow-hidden px-4 md:px-6"
+        style={
+          isMobile
+            ? {
+                paddingBottom: `calc(${composerHeight}px + env(safe-area-inset-bottom) + 16px)`,
+              }
+            : undefined
+        }
+      >
+>>>>>>> aa325de (feat: branding changes and mobile responsiveness)
         {!hasMessages ? (
           <div className="flex flex-1 min-h-0 flex-col items-center justify-center animate-fade-in">
             <div className="text-center">
@@ -1659,7 +1674,7 @@ export default function ChatPage() {
             data-chat-scroll-root="true"
             onScroll={handleMessagesScroll}
             onClick={handleMessagesClick}
-            className={`mx-auto w-full flex-1 min-h-0 space-y-7 overflow-y-auto pr-4 [scrollbar-gutter:stable] ${hasMessages ? "pt-6" : "pt-2 pb-6"}`}
+            className={`mx-auto w-full min-h-0 flex-1 space-y-7 overflow-y-auto pr-2 md:pr-4 [scrollbar-gutter:stable] ${hasMessages ? "pt-6" : "pt-2 pb-6"}`}
             style={
               hasMessages
                 ? (() => {
@@ -1673,7 +1688,9 @@ export default function ChatPage() {
                     const maskImage =
                       "linear-gradient(to bottom, transparent 0px, #000 32px, #000 calc(100% - 40px), transparent 100%)";
                     return {
-                      paddingBottom: "48px",
+                      paddingBottom: isMobile
+                        ? `calc(${composerHeight}px + env(safe-area-inset-bottom) + 28px)`
+                        : "48px",
                       WebkitMaskImage: maskImage,
                       maskImage,
                     };
@@ -1700,89 +1717,93 @@ export default function ChatPage() {
           </div>
         )}
 
-        <ChatComposer
-          composerRef={composerRef}
-          capMenuRef={capMenuRef}
-          capBtnRef={capBtnRef}
-          toolMenuRef={toolMenuRef}
-          toolBtnRef={toolBtnRef}
-          spaceMenuRef={spaceMenuRef}
-          spaceBtnRef={spaceBtnRef}
-          kbMenuRef={kbMenuRef}
-          kbBtnRef={kbBtnRef}
-          dragCounter={dragCounter}
-          dragging={dragging}
-          capMenuOpen={capMenuOpen}
-          toolMenuOpen={toolMenuOpen}
-          spaceMenuOpen={spaceMenuOpen}
-          kbMenuOpen={kbMenuOpen}
-          hasMessages={hasMessages}
-          attachments={attachments}
-          attachmentError={attachmentError}
-          activeCap={activeCap}
-          visibleTools={visibleTools}
-          selectedTools={selectedTools}
-          knowledgeBases={knowledgeBases}
-          llmOptions={llmOptions}
-          activeLLMDefault={activeLLMDefault}
-          llmSelection={state.llmSelection}
-          llmOptionsLoading={llmOptionsLoading}
-          llmOptionsError={llmOptionsError}
-          selectedBookReferences={selectedBookReferences}
-          selectedNotebookRecords={selectedNotebookRecords}
-          selectedHistorySessions={selectedHistorySessions}
-          selectedQuestionEntries={selectedQuestionEntries}
-          notebookReferenceGroups={notebookReferenceGroups}
-          selectedSkills={selectedSkills}
-          skillsAutoMode={skillsAutoMode}
-          selectedMemoryFiles={selectedMemoryFiles}
-          selectedKnowledgeBases={state.knowledgeBases}
-          isStreaming={state.isStreaming}
-          isResearchMode={isResearchMode}
-          isMathAnimatorMode={isMathAnimatorMode}
-          isVisualizeMode={isVisualizeMode}
-          isAutoMode={false}
-          autoEnabledCaps={EMPTY_SET}
-          researchConfigSources={researchConfig.sources}
-          capabilityNeedsConfig={capabilityNeedsConfig}
-          capabilityConfigConfirmed={capabilityConfigConfirmed}
-          onRequestConfigConfirm={ensureActivityPanelOpen}
-          capabilities={CAPABILITIES}
-          researchSources={RESEARCH_SOURCES}
-          onSetCapMenuOpen={setCapMenuOpen}
-          onSetToolMenuOpen={setToolMenuOpen}
-          onSetSpaceMenuOpen={setSpaceMenuOpen}
-          onSetKbMenuOpen={setKbMenuOpen}
-          onToggleAutoCap={noopToggleAutoCap}
-          onToggleKB={handleToggleKB}
-          onSelectLLM={setLLMSelection}
-          onSelectNotebookPicker={handleSelectNotebookPicker}
-          onSelectBookPicker={handleSelectBookPicker}
-          onSelectHistoryPicker={handleSelectHistoryPicker}
-          onSelectQuestionBankPicker={handleSelectQuestionBankPicker}
-          onSelectSkillsPicker={handleSelectSkillsPicker}
-          onSelectMemoryPicker={handleSelectMemoryPicker}
-          onToggleTool={toggleTool}
-          onToggleSkill={handleToggleSkill}
-          onSetSkillsAuto={handleSetSkillsAuto}
-          onToggleMemoryFile={handleToggleMemoryFile}
-          onToggleResearchSource={toggleResearchSource}
-          onSend={handleSend}
-          onRemoveAttachment={removeAttachment}
-          onPreviewAttachment={handlePreviewPendingAttachment}
-          onRemoveHistory={handleRemoveHistory}
-          onRemoveBookReference={handleRemoveBookReference}
-          onRemoveNotebook={handleRemoveNotebook}
-          onRemoveQuestion={handleRemoveQuestion}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onPaste={handlePaste}
-          onAddFiles={handleAddFiles}
-          onSelectCapability={handleSelectCapability}
-          onCancelStreaming={cancelStreamingTurn}
-        />
+        <div className="mobile-docked-composer fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)]/35 bg-[var(--background)]/94 px-3 pt-2 backdrop-blur-md md:static md:z-auto md:border-t-0 md:bg-transparent md:px-0 md:pt-0 md:backdrop-blur-none">
+          <div className="mx-auto w-full max-w-[960px] px-1 md:px-0">
+            <ChatComposer
+              composerRef={composerRef}
+              capMenuRef={capMenuRef}
+              capBtnRef={capBtnRef}
+              toolMenuRef={toolMenuRef}
+              toolBtnRef={toolBtnRef}
+              spaceMenuRef={spaceMenuRef}
+              spaceBtnRef={spaceBtnRef}
+              kbMenuRef={kbMenuRef}
+              kbBtnRef={kbBtnRef}
+              dragCounter={dragCounter}
+              dragging={dragging}
+              capMenuOpen={capMenuOpen}
+              toolMenuOpen={toolMenuOpen}
+              spaceMenuOpen={spaceMenuOpen}
+              kbMenuOpen={kbMenuOpen}
+              hasMessages={hasMessages}
+              attachments={attachments}
+              attachmentError={attachmentError}
+              activeCap={activeCap}
+              visibleTools={visibleTools}
+              selectedTools={selectedTools}
+              knowledgeBases={knowledgeBases}
+              llmOptions={llmOptions}
+              activeLLMDefault={activeLLMDefault}
+              llmSelection={state.llmSelection}
+              llmOptionsLoading={llmOptionsLoading}
+              llmOptionsError={llmOptionsError}
+              selectedBookReferences={selectedBookReferences}
+              selectedNotebookRecords={selectedNotebookRecords}
+              selectedHistorySessions={selectedHistorySessions}
+              selectedQuestionEntries={selectedQuestionEntries}
+              notebookReferenceGroups={notebookReferenceGroups}
+              selectedSkills={selectedSkills}
+              skillsAutoMode={skillsAutoMode}
+              selectedMemoryFiles={selectedMemoryFiles}
+              selectedKnowledgeBases={state.knowledgeBases}
+              isStreaming={state.isStreaming}
+              isResearchMode={isResearchMode}
+              isMathAnimatorMode={isMathAnimatorMode}
+              isVisualizeMode={isVisualizeMode}
+              isAutoMode={false}
+              autoEnabledCaps={EMPTY_SET}
+              researchConfigSources={researchConfig.sources}
+              capabilityNeedsConfig={capabilityNeedsConfig}
+              capabilityConfigConfirmed={capabilityConfigConfirmed}
+              onRequestConfigConfirm={ensureActivityPanelOpen}
+              capabilities={CAPABILITIES}
+              researchSources={RESEARCH_SOURCES}
+              onSetCapMenuOpen={setCapMenuOpen}
+              onSetToolMenuOpen={setToolMenuOpen}
+              onSetSpaceMenuOpen={setSpaceMenuOpen}
+              onSetKbMenuOpen={setKbMenuOpen}
+              onToggleAutoCap={noopToggleAutoCap}
+              onToggleKB={handleToggleKB}
+              onSelectLLM={setLLMSelection}
+              onSelectNotebookPicker={handleSelectNotebookPicker}
+              onSelectBookPicker={handleSelectBookPicker}
+              onSelectHistoryPicker={handleSelectHistoryPicker}
+              onSelectQuestionBankPicker={handleSelectQuestionBankPicker}
+              onSelectSkillsPicker={handleSelectSkillsPicker}
+              onSelectMemoryPicker={handleSelectMemoryPicker}
+              onToggleTool={toggleTool}
+              onToggleSkill={handleToggleSkill}
+              onSetSkillsAuto={handleSetSkillsAuto}
+              onToggleMemoryFile={handleToggleMemoryFile}
+              onToggleResearchSource={toggleResearchSource}
+              onSend={handleSend}
+              onRemoveAttachment={removeAttachment}
+              onPreviewAttachment={handlePreviewPendingAttachment}
+              onRemoveHistory={handleRemoveHistory}
+              onRemoveBookReference={handleRemoveBookReference}
+              onRemoveNotebook={handleRemoveNotebook}
+              onRemoveQuestion={handleRemoveQuestion}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onPaste={handlePaste}
+              onAddFiles={handleAddFiles}
+              onSelectCapability={handleSelectCapability}
+              onCancelStreaming={cancelStreamingTurn}
+            />
+          </div>
+        </div>
       </div>
       <NotebookRecordPicker
         open={showNotebookPicker}

@@ -6,82 +6,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode } from "react";
 import { useAppShell } from "@/context/AppShellContext";
 import {
-  BookOpen,
-  Bot,
   Github,
-  LayoutGrid,
-  Library,
-  MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
-  PenLine,
   Plus,
-  Settings,
-  Sparkles,
-  type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  BRAND_LOGO_SRC,
+  BRAND_NAME,
+  GITHUB_REPO_URL,
+  PRIMARY_NAV,
+  SECONDARY_NAV,
+} from "@/components/navigation/app-nav";
 import SessionList from "@/components/SessionList";
 import { surfaceForPath } from "@/lib/session-surfaces";
 import { TutorBotRecent } from "@/components/sidebar/TutorBotRecent";
 import { VersionBadge } from "@/components/sidebar/VersionBadge";
 import type { SessionSummary } from "@/lib/session-api";
 import { Tooltip } from "@/components/ui/Tooltip";
-
-interface NavEntry {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  tooltipKey?: string;
-}
-
-const PRIMARY_NAV: NavEntry[] = [
-  {
-    href: "/chat",
-    label: "Chat",
-    icon: MessageSquare,
-    tooltipKey: "Chat tooltip",
-  },
-  {
-    href: "/co-learn",
-    label: "Co-Learn",
-    icon: Sparkles,
-    tooltipKey: "Co-Learn tooltip",
-  },
-  {
-    href: "/agents",
-    label: "TutorBot",
-    icon: Bot,
-    tooltipKey: "TutorBot tooltip",
-  },
-  {
-    href: "/co-writer",
-    label: "Co-Writer",
-    icon: PenLine,
-    tooltipKey: "Co-Writer tooltip",
-  },
-  { href: "/book", label: "Book", icon: Library, tooltipKey: "Book tooltip" },
-  {
-    href: "/knowledge",
-    label: "Knowledge",
-    icon: BookOpen,
-    tooltipKey: "Knowledge tooltip",
-  },
-  {
-    href: "/space",
-    label: "Space",
-    icon: LayoutGrid,
-    tooltipKey: "Space tooltip",
-  },
-];
-
-const SECONDARY_NAV: NavEntry[] = [
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 const DEFAULT_SESSION_VIEWPORT_CLASS_NAME = "max-h-[112px]";
-const GITHUB_REPO_URL = "https://github.com/HKUDS/DeepTutor";
-const BRAND_NAME = "EducaT TutorRD";
-const BRAND_LOGO_SRC = "/educat-tutorrd-logo-v3.svg";
 
 interface SidebarShellProps {
   sessions?: SessionSummary[];
@@ -318,8 +262,8 @@ export function SidebarShell({
             href={GITHUB_REPO_URL}
             target="_blank"
             rel="noreferrer noopener"
-            title="GitHub"
-            aria-label="GitHub"
+            title={t("GitHub") as string}
+            aria-label={t("GitHub")}
             className="mt-1 flex h-9 w-9 items-center justify-center rounded-xl text-[var(--muted-foreground)]/70 transition-colors hover:bg-[var(--primary)]/14 hover:text-[var(--foreground)]"
           >
             <Github size={15} strokeWidth={1.6} />
@@ -444,8 +388,8 @@ export function SidebarShell({
             href={GITHUB_REPO_URL}
             target="_blank"
             rel="noreferrer noopener"
-            title="GitHub"
-            aria-label="GitHub"
+            title={t("GitHub") as string}
+            aria-label={t("GitHub")}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--muted-foreground)]/55 transition-colors hover:bg-[var(--primary)]/12 hover:text-[var(--foreground)]"
           >
             <Github size={13} strokeWidth={1.7} />
