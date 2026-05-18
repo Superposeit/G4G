@@ -38,14 +38,10 @@ def _settings_file():
     return get_path_service().get_settings_file("interface")
 
 
-<<<<<<< HEAD
 TOUR_CACHE: "Path | None" = None
 
 
 def _tour_cache_file() -> "Path":
-=======
-def _tour_cache_file():
->>>>>>> df925e6 (fix lint)
     if TOUR_CACHE is not None:
         return TOUR_CACHE
     return get_path_service().get_settings_dir() / ".tour_cache.json"

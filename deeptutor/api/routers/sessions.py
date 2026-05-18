@@ -9,16 +9,8 @@ import logging
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
-<<<<<<< HEAD
-from deeptutor.services.session import get_sqlite_session_store
-
-=======
 from deeptutor.services.session import get_session_store, get_sqlite_session_store
-<<<<<<< HEAD
->>>>>>> df925e6 (fix lint)
-=======
 from deeptutor.services.storage.attachment_store import get_attachment_store
->>>>>>> a68591b (feat: 扩展 MessageItem 数据结构，增加 id 字段支持删除会话问答)
 
 logger = logging.getLogger(__name__)
 
@@ -95,13 +87,8 @@ async def list_sessions(
         ),
     ),
 ):
-<<<<<<< HEAD
-    store = get_sqlite_session_store()
-    sessions = await store.list_sessions(limit=limit, offset=offset)
-=======
     store = get_session_store()
     sessions = await store.list_sessions(limit=limit, offset=offset, kind=kind)
->>>>>>> 3d5c3a1 (improve chat)
     return {"sessions": sessions}
 
 
