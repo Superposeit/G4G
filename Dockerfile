@@ -110,8 +110,7 @@ LABEL maintainer="DeepTutor Team" \
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=utf-8 \
-    NODE_ENV=production \
-    DEEPTUTOR_IGNORE_PROCESS_ENV_OVERRIDES=1
+    NODE_ENV=production
 
 WORKDIR /app
 
@@ -299,33 +298,8 @@ echo "============================================"
 echo "🚀 Starting DeepTutor"
 echo "============================================"
 
-export DEEPTUTOR_IGNORE_PROCESS_ENV_OVERRIDES=1
-
-# Docker is JSON-driven. Ignore runtime env names even if the host or a stale
-# Compose environment provides them; the entrypoint re-exports values from
-# data/user/settings/*.json below.
-for key in \
-    BACKEND_PORT \
-    FRONTEND_PORT \
-    NEXT_PUBLIC_API_BASE_EXTERNAL \
-    NEXT_PUBLIC_API_BASE \
-    CORS_ORIGIN \
-    CORS_ORIGINS \
-    DISABLE_SSL_VERIFY \
-    CHAT_ATTACHMENT_DIR \
-    AUTH_ENABLED \
-    NEXT_PUBLIC_AUTH_ENABLED \
-    AUTH_USERNAME \
-    AUTH_PASSWORD_HASH \
-    AUTH_TOKEN_EXPIRE_HOURS \
-    AUTH_COOKIE_SECURE \
-    POCKETBASE_URL \
-    POCKETBASE_PORT \
-    POCKETBASE_EXTERNAL_URL \
-    POCKETBASE_ADMIN_EMAIL \
-    POCKETBASE_ADMIN_PASSWORD; do
-    unset "$key"
-done
+# Allow environment variables (e.g. from Dokploy) to take priority over JSON settings.
+# The RuntimeSettingsService will merge process env variables before rendering.
 
 # Initialize user data directories if empty
 echo "📁 Checking data directories..."
