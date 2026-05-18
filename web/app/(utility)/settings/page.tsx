@@ -1296,6 +1296,106 @@ function SettingsPageContent() {
                         </span>
                       )}
                     </div>
+                    <div className="mt-2 truncate text-[13px] font-medium text-[var(--foreground)]">
+                      {detail}
+                    </div>
+                    <div className="mt-0.5 truncate text-[11px] text-[var(--muted-foreground)]">
+                      {profileName}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ── Service Configuration ── */}
+            <div className="mb-8">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {(["llm", "embedding", "search"] as const).map((service) => (
+                    <button
+                      key={service}
+                      data-tour={`tour-${service}`}
+                      onClick={() => setActiveService(service)}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] transition-colors ${
+                        activeService === service
+                          ? "bg-[var(--muted)] font-medium text-[var(--foreground)]"
+                          : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      }`}
+                    >
+                      {serviceIcon(service)}
+                      {service.toUpperCase()}
+                      <span className="text-[11px] text-[var(--muted-foreground)]/60">
+                        {draft.services[service].profiles.length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={addProfile}
+                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2.5 py-1 text-[12px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
+                  >
+                    <Plus className="h-3 w-3" />
+                    {t("Profile")}
+                  </button>
+                  {activeService !== "search" && (
+                    <button
+                      onClick={addModel}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2.5 py-1 text-[12px] text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)]"
+                    >
+                      <Plus className="h-3 w-3" />
+                      {t("Model")}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {activeProfile ? (
+                <div className="grid grid-cols-[200px_1fr] gap-5">
+                  {/* ── Profile list ── */}
+                  <div className="space-y-2">
+                    {draft.services[activeService].profiles.map((profile) => {
+                      const isActive =
+                        profile.id ===
+                        draft.services[activeService].active_profile_id;
+                      const activeProfileModel =
+                        activeService === "search"
+                          ? null
+                          : (profile.models.find(
+                              (model) =>
+                                model.id ===
+                                draft.services[activeService].active_model_id,
+                            ) ??
+                            profile.models[0] ??
+                            null);
+                      const profileDetail = activeProfileDetail(
+                        profile,
+                        activeService,
+                        t,
+                      );
+                      const modelDetail = activeModelDetail(
+                        profile,
+                        activeProfileModel,
+                        activeService,
+                        t,
+                      );
+                      return (
+                        <button
+                          key={profile.id}
+                          onClick={() =>
+                            mutateCatalog((next) => {
+                              next.services[activeService].active_profile_id =
+                                profile.id;
+                              if (activeService !== "search") {
+                                next.services[activeService].active_model_id =
+                                  profile.models[0]?.id ?? null;
+                              }
+                            })
+                          }
+                          className={`relative w-full overflow-hidden rounded-xl px-3.5 py-3 text-left transition-colors ${
+                            isActive
+                              ? "bg-[var(--muted)]/60 text-[var(--foreground)]"
+                              : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/30"
                           }`}
                         >
                           {isActive && (
@@ -1750,8 +1850,16 @@ function SettingsPageContent() {
                       </div>
                     )}
                   </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-[var(--border)] py-12 text-center text-[13px] text-[var(--muted-foreground)]">
+                  {t("No profiles configured. Add a profile to start.")}
+                </div>
               )}
+
+              {activeService === "litertlm" && <LiteRTLMSection />}
             </div>
+
 
             {/* ── Diagnostics ── */}
             <div className="mb-6 rounded-xl border border-[var(--border)]">

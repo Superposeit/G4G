@@ -980,7 +980,6 @@ export default memo(function ChatComposer({
                   )}
                 </div>
               </div>
-              </div>
               {/* ---- Right: always-visible model + send ---- */}
               <div className="flex shrink-0 items-center gap-1.5">
                 <ModelSelector

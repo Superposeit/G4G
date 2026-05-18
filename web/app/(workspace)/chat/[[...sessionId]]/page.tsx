@@ -259,8 +259,8 @@ const CAPABILITIES: CapabilityDef[] = [
     label: "TutorRD",
     description: "Tutor socrático de matemáticas dominicanas",
     icon: GraduationCap,
-    allowedTools: ["rag"],
-    defaultTools: ["rag"],
+    allowedTools: [],
+    defaultTools: [],
   },
   {
     value: "visualize",
