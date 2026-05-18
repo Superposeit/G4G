@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { useKnowledgeBases } from "@/hooks/useKnowledgeBases";
+import { useIsMobileViewport } from "@/hooks/useIsMobileViewport";
 import KnowledgeBaseList from "./KnowledgeBaseList";
 import KnowledgeBaseDetail from "./KnowledgeBaseDetail";
 import CreateKbModal from "./CreateKbModal";
@@ -14,6 +15,7 @@ export default function KnowledgePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialKb = searchParams.get("kb");
+  const isMobile = useIsMobileViewport();
 
   const {
     kbs,
@@ -37,6 +39,11 @@ export default function KnowledgePage() {
     initialKb,
   );
   const [createOpen, setCreateOpen] = useState(false);
+  const mobileHasSelection = searchParams.get("kb") !== null;
+
+  useEffect(() => {
+    setExplicitSelection(initialKb);
+  }, [initialKb]);
 
   // Derive the effective selection: respect the user's pick if it still
   // exists, otherwise fall back to the default KB (or the first one). No
@@ -57,17 +64,18 @@ export default function KnowledgePage() {
   // Keep ?kb=… in sync with the effective selection so deep links work.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const nextSelection = isMobile ? explicitSelection : selectedKbName;
     const current = searchParams.get("kb");
-    if (current === (selectedKbName ?? null)) return;
+    if (current === (nextSelection ?? null)) return;
     const params = new URLSearchParams(Array.from(searchParams.entries()));
-    if (selectedKbName) {
-      params.set("kb", selectedKbName);
+    if (nextSelection) {
+      params.set("kb", nextSelection);
     } else {
       params.delete("kb");
     }
     const search = params.toString();
     router.replace(search ? `?${search}` : "?", { scroll: false });
-  }, [router, searchParams, selectedKbName]);
+  }, [explicitSelection, isMobile, router, searchParams, selectedKbName]);
 
   const handleCreate = useCallback(
     async (params: { name: string; provider: string; files: File[] }) => {
@@ -161,27 +169,37 @@ export default function KnowledgePage() {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1">
-          <KnowledgeBaseList
-            kbs={kbs}
-            selectedKbName={selectedKbName}
-            onSelect={setExplicitSelection}
-            onCreate={() => setCreateOpen(true)}
-            onSetDefault={handleSetDefault}
-            onDelete={handleDelete}
-            tasksByKb={tasksByKb}
-          />
-          <KnowledgeBaseDetail
-            kb={selectedKb}
-            uploadPolicy={uploadPolicy}
-            task={selectedKb ? tasksByKb[selectedKb.name] : undefined}
-            history={selectedKb ? (historyByKb[selectedKb.name] ?? []) : []}
-            onCreate={() => setCreateOpen(true)}
-            onUpload={handleUpload}
-            onReindex={handleReindex}
-            onSetDefault={handleSetDefault}
-            onDelete={handleDelete}
-            onClearHistory={clearHistory}
-          />
+          <div
+            className={`${mobileHasSelection ? "hidden md:flex" : "flex"} min-h-0 flex-1 md:flex-none`}
+          >
+            <KnowledgeBaseList
+              kbs={kbs}
+              selectedKbName={
+                isMobile && !mobileHasSelection ? null : selectedKbName
+              }
+              onSelect={setExplicitSelection}
+              onCreate={() => setCreateOpen(true)}
+              onSetDefault={handleSetDefault}
+              onDelete={handleDelete}
+              tasksByKb={tasksByKb}
+            />
+          </div>
+          <div
+            className={`${mobileHasSelection ? "flex" : "hidden md:flex"} min-h-0 flex-1`}
+          >
+            <KnowledgeBaseDetail
+              kb={selectedKb}
+              uploadPolicy={uploadPolicy}
+              task={selectedKb ? tasksByKb[selectedKb.name] : undefined}
+              history={selectedKb ? (historyByKb[selectedKb.name] ?? []) : []}
+              onCreate={() => setCreateOpen(true)}
+              onUpload={handleUpload}
+              onReindex={handleReindex}
+              onSetDefault={handleSetDefault}
+              onDelete={handleDelete}
+              onClearHistory={clearHistory}
+            />
+          </div>
         </div>
       )}
 

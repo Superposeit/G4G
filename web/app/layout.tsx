@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Lora, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ThemeScript from "@/components/ThemeScript";
+import ToastViewport from "@/components/common/ToastViewport";
 import { AppShellProvider } from "@/context/AppShellContext";
 import { I18nClientBridge } from "@/i18n/I18nClientBridge";
 
@@ -24,14 +25,23 @@ const fontDisplay = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "DeepTutor",
-  description: "Agent-native intelligent learning companion",
+  title: "EducaT TutorRD",
+  description: "Agent-native tutoring and intelligent learning companion",
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      {
+        url: "/educat-tutorrd-favicon-16x16-v3.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/educat-tutorrd-favicon-32x32-v3.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
     ],
-    apple: "/apple-touch-icon.png",
+    shortcut: "/educat-tutorrd-favicon-32x32-v3.png",
+    apple: "/educat-tutorrd-apple-touch-icon-v3.png",
   },
 };
 
@@ -53,6 +63,7 @@ export default function RootLayout({
       <body className="font-sans bg-[var(--background)] text-[var(--foreground)]">
         <AppShellProvider>
           <I18nClientBridge>{children}</I18nClientBridge>
+          <ToastViewport />
         </AppShellProvider>
       </body>
     </html>

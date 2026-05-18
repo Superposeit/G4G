@@ -1,8 +1,8 @@
 const FENCE = "```";
 
-export const CO_WRITER_SAMPLE_TEMPLATE = `# DeepTutor Co-Writer
+export const CO_WRITER_SAMPLE_TEMPLATE = `# EducaT TutorRD Co-Writer
 
-> DeepTutor's built-in writing canvas for notes, reports, tutorials, and AI-assisted drafts.
+> EducaT TutorRD's built-in writing canvas for notes, reports, tutorials, and AI-assisted drafts.
 
 ### Features
 
@@ -10,7 +10,7 @@ export const CO_WRITER_SAMPLE_TEMPLATE = `# DeepTutor Co-Writer
 - Real-time preview for headings, tables, code, math, flowchart, and sequence diagrams
 - AI editing workflows for rewrite, shorten, and expand
 - HTML tag decoding for tags like <sub>, <sup>, <abbr>, and <mark>
-- A practical starter draft for DeepTutor product docs and learning content
+- A practical starter draft for EducaT TutorRD product docs and learning content
 
 ## Table of Contents
 
@@ -18,23 +18,23 @@ export const CO_WRITER_SAMPLE_TEMPLATE = `# DeepTutor Co-Writer
 
 [TOC]
 
-#DeepTutor Mission
-##DeepTutor Product Surface
-###DeepTutor Learning Experience
-####DeepTutor Co-Writer
-#####DeepTutor Knowledge Layer
-######DeepTutor Agent Runtime
+#EducaT TutorRD Mission
+##EducaT TutorRD Product Surface
+###EducaT TutorRD Learning Experience
+####EducaT TutorRD Co-Writer
+#####EducaT TutorRD Knowledge Layer
+######EducaT TutorRD Agent Runtime
 
-#DeepTutor Docs [Project Overview](#deeptutor-mission "Jump to project overview")
-##DeepTutor Authoring [Co-Writer Section](#deeptutor-co-writer "Jump to co-writer section")
-###DeepTutor Research [Learning Note](#deeptutor-learning-note "Jump to learning note")
+#EducaT TutorRD Docs [Project Overview](#educat-tutorrd-mission "Jump to project overview")
+##EducaT TutorRD Authoring [Co-Writer Section](#educat-tutorrd-co-writer "Jump to co-writer section")
+###EducaT TutorRD Research [Learning Note](#educat-tutorrd-learning-note "Jump to learning note")
 
 ## Headers (Underline)
 
-DeepTutor Learning Note
+EducaT TutorRD Learning Note
 =============
 
-DeepTutor Study Outline
+EducaT TutorRD Study Outline
 -------------
 
 ### Characters
@@ -50,25 +50,25 @@ Superscript: X<sub>2</sub>, Subscript: O<sup>2</sup>
 
 **Abbreviation(link HTML abbr tag)**
 
-The <abbr title="Large Language Model">LLM</abbr> layer powers DeepTutor while the <abbr title="Retrieval Augmented Generation">RAG</abbr> layer provides grounded knowledge support.
+The <abbr title="Large Language Model">LLM</abbr> layer powers EducaT TutorRD while the <abbr title="Retrieval Augmented Generation">RAG</abbr> layer provides grounded knowledge support.
 
 ### Blockquotes
 
-> DeepTutor helps students turn questions into structured understanding.
+> EducaT TutorRD helps students turn questions into structured understanding.
 >
-> "Learn deeply, write clearly.", [DeepTutor](#deeptutor-co-writer)
+> "Learn deeply, write clearly.", [EducaT TutorRD](#educat-tutorrd-co-writer)
 
 ### Links
 
-[DeepTutor Overview](#deeptutor-mission)
+[EducaT TutorRD Overview](#educat-tutorrd-mission)
 
-[DeepTutor Co-Writer](#deeptutor-co-writer "co-writer section")
+[EducaT TutorRD Co-Writer](#educat-tutorrd-co-writer "co-writer section")
 
-[DeepTutor Runtime](#deeptutor-agent-runtime)
+[EducaT TutorRD Runtime](#educat-tutorrd-agent-runtime)
 
-[Reference link][deeptutor-doc]
+[Reference link][educat-doc]
 
-[deeptutor-doc]: #deeptutor-learning-note
+[educat-doc]: #educat-tutorrd-learning-note
 
 ### Code Blocks
 
@@ -80,7 +80,7 @@ The <abbr title="Large Language Model">LLM</abbr> layer powers DeepTutor while t
 
     from deeptutor.runtime.orchestrator import ChatOrchestrator
     orchestrator = ChatOrchestrator()
-    print("DeepTutor is ready.")
+    print("EducaT TutorRD is ready.")
 
 #### Python
 
@@ -103,7 +103,7 @@ ${FENCE}
 
 ${FENCE}json
 {
-  "app_name": "DeepTutor",
+  "app_name": "EducaT TutorRD",
   "default_capability": "chat",
   "enabled_tools": ["rag", "web_search", "code_execution", "reason"],
   "ui": {
@@ -115,23 +115,23 @@ ${FENCE}
 #### HTML code
 
 ${FENCE}html
-<section class="deeptutor-card">
-  <h1>DeepTutor</h1>
+<section class="educat-tutorrd-card">
+  <h1>EducaT TutorRD</h1>
   <p>Write, revise, and organize learning content with AI.</p>
 </section>
 ${FENCE}
 
 ### Images
 
-![](/logo-ver2.png)
+![](/educat-tutorrd-logo-v3.svg)
 
-> DeepTutor brand mark used inside the co-writer template.
+> EducaT TutorRD brand mark used inside the co-writer template.
 
 ### Lists
 
-- DeepTutor Chat
-- DeepTutor Co-Writer
-- DeepTutor Research
+- EducaT TutorRD Chat
+- EducaT TutorRD Co-Writer
+- EducaT TutorRD Research
 
 1. Draft a concept note
 2. Ask AI to refine it
@@ -153,7 +153,7 @@ Research      | Build structured multi-step reports
 
 ### Markdown extras
 
-- [x] Draft a DeepTutor product note
+- [x] Draft an EducaT TutorRD product note
 - [x] Add references and structure
 - [ ] Polish the final explanation
   - [ ] Check headings
@@ -173,7 +173,7 @@ $$ \sin(\alpha)^{\theta}=\sum_{i=0}^{n}(x^i + \cos(f))$$
 
 ${FENCE}flow
 st=>start: Student asks a question
-op=>operation: DeepTutor analyzes intent
+op=>operation: EducaT TutorRD analyzes intent
 cond=>condition: Need deep workflow?
 chat=>operation: Answer with chat capability
 solve=>operation: Route to deep solve
@@ -189,11 +189,11 @@ ${FENCE}
 ### Sequence Diagram
 
 ${FENCE}seq
-Student->DeepTutor: Ask for help
-DeepTutor->KnowledgeBase: Load context
-Note right of DeepTutor: Collect memory\nand relevant knowledge
-DeepTutor-->Student: Return guided response
-Student->>DeepTutor: Request rewrite in co-writer
+Student->EducaT TutorRD: Ask for help
+EducaT TutorRD->KnowledgeBase: Load context
+Note right of EducaT TutorRD: Collect memory\nand relevant knowledge
+EducaT TutorRD-->Student: Return guided response
+Student->>EducaT TutorRD: Request rewrite in co-writer
 ${FENCE}
 
 ### End

@@ -41,7 +41,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl } from "@/lib/api";
 import { listKnowledgeBases } from "@/lib/knowledge-api";
 import {
   getCoWriterDocument,
@@ -955,7 +955,7 @@ export default function CoWriterPage() {
     selectionRequestAbortRef.current = controller;
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         apiUrl("/api/v1/co_writer/edit_react/stream"),
         {
           method: "POST",
@@ -1073,7 +1073,7 @@ export default function CoWriterPage() {
     setError("");
     setStatus("");
     try {
-      const response = await fetch(apiUrl("/api/v1/co_writer/edit"), {
+      const response = await apiFetch(apiUrl("/api/v1/co_writer/edit"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1107,7 +1107,7 @@ export default function CoWriterPage() {
     setError("");
     setStatus("");
     try {
-      const response = await fetch(apiUrl("/api/v1/co_writer/automark"), {
+      const response = await apiFetch(apiUrl("/api/v1/co_writer/automark"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: markdown }),
@@ -2373,7 +2373,9 @@ export default function CoWriterPage() {
 
             <div className="px-4 py-3">
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-                {t("Undo is available with Ctrl/Cmd+Z or the toolbar Undo button.")}
+                {t(
+                  "Undo is available with Ctrl/Cmd+Z or the toolbar Undo button.",
+                )}
               </div>
             </div>
 

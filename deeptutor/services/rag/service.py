@@ -8,11 +8,11 @@ from pathlib import Path
 import shutil
 from typing import Any, Dict, List, Optional
 
+from deeptutor.runtime.home import get_runtime_data_root
+
 from .factory import DEFAULT_PROVIDER, get_pipeline, list_pipelines
 
-DEFAULT_KB_BASE_DIR = str(
-    Path(__file__).resolve().parent.parent.parent.parent / "data" / "knowledge_bases"
-)
+DEFAULT_KB_BASE_DIR = str(get_runtime_data_root() / "knowledge_bases")
 
 
 class RAGService:

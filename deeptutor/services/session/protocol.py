@@ -16,11 +16,16 @@ class SessionStoreProtocol(Protocol):
         self,
         title: str | None = None,
         session_id: str | None = None,
+        kind: str = "chat",
     ) -> dict[str, Any]: ...
 
     async def get_session(self, session_id: str) -> dict[str, Any] | None: ...
 
-    async def ensure_session(self, session_id: str | None = None) -> dict[str, Any]: ...
+    async def ensure_session(
+        self,
+        session_id: str | None = None,
+        kind: str = "chat",
+    ) -> dict[str, Any]: ...
 
     async def create_turn(self, session_id: str, capability: str = "") -> dict[str, Any]: ...
 
@@ -48,13 +53,28 @@ class SessionStoreProtocol(Protocol):
         capability: str = "",
         events: list[dict[str, Any]] | None = None,
         attachments: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+        parent_message_id: int | None = None,
     ) -> int: ...
+
+    async def delete_message(self, message_id: int | str) -> bool: ...
+
+    async def get_last_message(
+        self, session_id: str, role: str | None = None
+    ) -> dict[str, Any] | None: ...
 
     async def get_messages(self, session_id: str) -> list[dict[str, Any]]: ...
 
-    async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]: ...
+    async def get_messages_for_context(
+        self, session_id: str, leaf_message_id: int | None = None
+    ) -> list[dict[str, Any]]: ...
 
-    async def list_sessions(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]: ...
+    async def list_sessions(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        kind: str | None = None,
+    ) -> list[dict[str, Any]]: ...
 
     async def update_summary(self, session_id: str, summary: str, up_to_msg_id: int) -> bool: ...
 

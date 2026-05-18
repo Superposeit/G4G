@@ -20,28 +20,36 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+from deeptutor.multi_user.context import get_current_user
+from deeptutor.multi_user.model_access import allowed_llm_options, redacted_model_access
 from deeptutor.services.config import get_config_test_runner, get_model_catalog_service
 from deeptutor.services.embedding.client import reset_embedding_client
 from deeptutor.services.llm.client import reset_llm_client
 from deeptutor.services.llm.config import clear_llm_config_cache
 from deeptutor.services.model_selection import list_llm_options
 from deeptutor.services.path_service import get_path_service
-from deeptutor.multi_user.context import get_current_user
-from deeptutor.multi_user.model_access import allowed_llm_options, redacted_model_access
 
 router = APIRouter()
+
+TOUR_CACHE = None
+
 
 def _settings_file():
     return get_path_service().get_settings_file("interface")
 
 
+<<<<<<< HEAD
 TOUR_CACHE: "Path | None" = None
 
 
 def _tour_cache_file() -> "Path":
+=======
+def _tour_cache_file():
+>>>>>>> df925e6 (fix lint)
     if TOUR_CACHE is not None:
         return TOUR_CACHE
     return get_path_service().get_settings_dir() / ".tour_cache.json"
+
 
 DEFAULT_SIDEBAR_NAV_ORDER = {
     "start": ["/", "/history", "/knowledge", "/notebook"],
@@ -168,12 +176,14 @@ def _provider_choices() -> dict[str, list[dict[str, str]]]:
         key=lambda p: p["label"].lower(),
     )
     search = [
+        {"value": "none", "label": "None", "base_url": ""},
         {"value": "brave", "label": "Brave", "base_url": ""},
         {"value": "tavily", "label": "Tavily", "base_url": ""},
         {"value": "jina", "label": "Jina", "base_url": ""},
         {"value": "searxng", "label": "SearXNG", "base_url": ""},
         {"value": "duckduckgo", "label": "DuckDuckGo", "base_url": ""},
         {"value": "perplexity", "label": "Perplexity", "base_url": ""},
+        {"value": "serper", "label": "Serper", "base_url": ""},
     ]
     return {"llm": llm, "embedding": embedding, "search": search, "litertlm": []}
 
@@ -218,12 +228,12 @@ async def update_catalog(payload: CatalogPayload):
 async def apply_catalog(payload: CatalogPayload | None = None):
     _require_settings_admin()
     catalog = payload.catalog if payload is not None else get_model_catalog_service().load()
-    rendered = get_model_catalog_service().apply(catalog)
+    applied = get_model_catalog_service().apply(catalog)
     _invalidate_runtime_caches()
     return {
-        "message": "Catalog applied to the active .env configuration.",
+        "message": "Catalog applied to runtime settings.",
         "catalog": get_model_catalog_service().load(),
-        "env": rendered,
+        "runtime": applied,
     }
 
 
@@ -361,7 +371,7 @@ class TourCompletePayload(BaseModel):
 async def complete_tour(payload: TourCompletePayload | None = None):
     _require_settings_admin()
     catalog = payload.catalog if payload and payload.catalog else get_model_catalog_service().load()
-    rendered = get_model_catalog_service().apply(catalog)
+    applied = get_model_catalog_service().apply(catalog)
     _invalidate_runtime_caches()
     now = int(time.time())
     launch_at = now + 3
@@ -385,7 +395,7 @@ async def complete_tour(payload: TourCompletePayload | None = None):
         "message": "Configuration saved. DeepTutor will restart shortly.",
         "launch_at": launch_at,
         "redirect_at": redirect_at,
-        "env": rendered,
+        "runtime": applied,
     }
 
 
@@ -393,5 +403,5 @@ async def complete_tour(payload: TourCompletePayload | None = None):
 async def reopen_tour():
     return {
         "message": "Run the terminal setup guide from the project root to re-open the guided setup.",
-        "command": "python scripts/start_tour.py",
+        "command": "deeptutor init",
     }
