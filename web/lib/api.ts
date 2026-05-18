@@ -56,6 +56,24 @@ export function resolveBase(): string {
     const clientHost = window.location.hostname;
     if (isLoopbackHost(url.hostname) && !isLoopbackHost(clientHost)) {
       url.hostname = clientHost;
+      
+      // Prevent Mixed Content errors in production deployments
+      if (window.location.protocol === "https:") {
+        url.protocol = "https:";
+        // Drop internal ports since secure deployments usually use standard 443
+        if (url.port === "8001" || url.port === "3782") {
+          url.port = "";
+        }
+        
+        // Use mapped secure API host if defined via environment variables
+        const mappedFrontend = process.env.NEXT_PUBLIC_MAPPED_FRONTEND_HOST;
+        const mappedBackend = process.env.NEXT_PUBLIC_MAPPED_BACKEND_HOST;
+        
+        if (mappedFrontend && mappedBackend && clientHost === mappedFrontend) {
+          url.hostname = mappedBackend;
+        }
+      }
+
       if (!warnedAboutHostSwap) {
         warnedAboutHostSwap = true;
         console.warn(

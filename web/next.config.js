@@ -82,6 +82,8 @@ const nextConfig = {
     NEXT_PUBLIC_APP_VERSION: APP_VERSION,
     NEXT_PUBLIC_API_BASE,
     NEXT_PUBLIC_AUTH_ENABLED,
+    NEXT_PUBLIC_MAPPED_FRONTEND_HOST: process.env.NEXT_PUBLIC_MAPPED_FRONTEND_HOST,
+    NEXT_PUBLIC_MAPPED_BACKEND_HOST: process.env.NEXT_PUBLIC_MAPPED_BACKEND_HOST,
   },
 
   // Standalone output: self-contained server.js + minimal node_modules
