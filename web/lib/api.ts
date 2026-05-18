@@ -71,6 +71,11 @@ export function resolveBase(): string {
         
         if (mappedFrontend && mappedBackend && clientHost === mappedFrontend) {
           url.hostname = mappedBackend;
+        } else if (!mappedFrontend && !mappedBackend) {
+          // Fallback heuristic for Dokploy: if client is "domain.com", route to "api.domain.com"
+          if (clientHost.split('.').length >= 2 && !clientHost.startsWith('api.')) {
+            url.hostname = `api.${clientHost.replace(/^www\./, '')}`;
+          }
         }
       }
 

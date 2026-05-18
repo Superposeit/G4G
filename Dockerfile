@@ -41,6 +41,8 @@ COPY deeptutor/__version__.py /app/deeptutor/__version__.py
 RUN printf '%s\n' \
     'NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__' \
     'NEXT_PUBLIC_AUTH_ENABLED=__NEXT_PUBLIC_AUTH_ENABLED_PLACEHOLDER__' \
+    'NEXT_PUBLIC_MAPPED_FRONTEND_HOST=__NEXT_PUBLIC_MAPPED_FRONTEND_HOST_PLACEHOLDER__' \
+    'NEXT_PUBLIC_MAPPED_BACKEND_HOST=__NEXT_PUBLIC_MAPPED_BACKEND_HOST_PLACEHOLDER__' \
     > .env.local
 
 # Build Next.js for production with standalone output
@@ -268,11 +270,15 @@ escape_sed_replacement() {
 
 API_BASE_ESCAPED="$(escape_sed_replacement "$API_BASE")"
 AUTH_ENABLED_ESCAPED="$(escape_sed_replacement "$AUTH_ENABLED")"
+MAPPED_FRONTEND_ESCAPED="$(escape_sed_replacement "$NEXT_PUBLIC_MAPPED_FRONTEND_HOST")"
+MAPPED_BACKEND_ESCAPED="$(escape_sed_replacement "$NEXT_PUBLIC_MAPPED_BACKEND_HOST")"
 
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i \
         -e "s|__NEXT_PUBLIC_API_BASE_PLACEHOLDER__|${API_BASE_ESCAPED}|g" \
         -e "s|__NEXT_PUBLIC_AUTH_ENABLED_PLACEHOLDER__|${AUTH_ENABLED_ESCAPED}|g" \
+        -e "s|__NEXT_PUBLIC_MAPPED_FRONTEND_HOST_PLACEHOLDER__|${MAPPED_FRONTEND_ESCAPED}|g" \
+        -e "s|__NEXT_PUBLIC_MAPPED_BACKEND_HOST_PLACEHOLDER__|${MAPPED_BACKEND_ESCAPED}|g" \
         {} \; 2>/dev/null || true
 
 # Start Next.js standalone server
