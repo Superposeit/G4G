@@ -4,31 +4,22 @@
 # This file provides orchestration for DeepTutor services
 #
 # Usage:
-<<<<<<< HEAD
-#   Start all services:  docker compose up -d
-#   Stop all services:    docker compose down
-#   View logs:           docker compose logs -f
-#   Rebuild:             docker compose up -d --build
-=======
 #   Production:  python scripts/docker_compose.py up -d
 #   Development: python scripts/docker_compose.py -f docker-compose.yml -f docker-compose.dev.yml up
 #   Build only:  python scripts/docker_compose.py build
->>>>>>> 85779c8 (refactor env settings and installation)
+#   Quick start: docker compose up -d
 #
 # Prerequisites:
 #   1. Runtime settings are stored in ./data/user/settings (created automatically)
 #   2. Configure model providers from the web Settings page or model_catalog.json
 #   3. Use scripts/docker_compose.py so port mappings are rendered from system.json
 #
-<<<<<<< HEAD
 # LiteRT-LM bridge (on-device Gemma):
 #   The model is downloaded automatically on first startup.
 #   Set LITERTLM_MODEL_PATH in .env to override the default location.
-=======
 # Local LLM (LM Studio / Ollama / vLLM):
 #   Use "host.docker.internal" instead of "localhost" in provider base_url fields.
 #   Configure provider endpoints in data/user/settings/model_catalog.json or the UI.
->>>>>>> 85779c8 (refactor env settings and installation)
 # ============================================
 
 services:
@@ -102,67 +93,8 @@ services:
     container_name: deeptutor
     restart: unless-stopped
     ports:
-<<<<<<< HEAD
-      - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
-      - "${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
-
-    # Load environment variables from .env file
-    env_file:
-      - .env
-
-    environment:
-      # LLM Configuration (Required)
-      - LLM_BINDING=${LLM_BINDING:-litertlm}
-      - LLM_MODEL=${LLM_MODEL:-gemma-4-E2B-it}
-      - LLM_API_KEY=${LLM_API_KEY:-sk-no-key-required}
-      # Use the LiteRT-LM bridge service by default
-      - LLM_HOST=${LLM_HOST:-http://litertlm:8000/v1}
-      - LLM_API_VERSION=${LLM_API_VERSION:-}
-      - DISABLE_SSL_VERIFY=${DISABLE_SSL_VERIFY:-false}
-      - LITERTLM_MODEL_PATH=${LITERTLM_MODEL_PATH:-}
-      - DEVICE_DISK_TOTAL_GB=${DEVICE_DISK_TOTAL_GB:-}
-      # Embedding Configuration (Required for Knowledge Base)
-      - EMBEDDING_BINDING=${EMBEDDING_BINDING:-openai}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-large}
-      - EMBEDDING_API_KEY=${EMBEDDING_API_KEY}
-      - EMBEDDING_HOST=${EMBEDDING_HOST}
-      - EMBEDDING_DIMENSION=${EMBEDDING_DIMENSION:-3072}
-      - EMBEDDING_API_VERSION=${EMBEDDING_API_VERSION:-}
-      # Web Search Configuration (Optional)
-      - SEARCH_PROVIDER=${SEARCH_PROVIDER:-}
-      - SEARCH_API_KEY=${SEARCH_API_KEY:-}
-      - SEARCH_BASE_URL=${SEARCH_BASE_URL:-}
-      # ============================================
-      # Service Ports Configuration
-      # ============================================
-      # Backend API port (default: 8001)
-      - BACKEND_PORT=${BACKEND_PORT:-8001}
-      # Frontend web port (default: 3782)
-      - FRONTEND_PORT=${FRONTEND_PORT:-3782}
-      # ============================================
-      # API URL Configuration (Important for Remote Deployment)
-      # ============================================
-      # The frontend runs in the USER'S BROWSER — "localhost" means the user's machine,
-      # not the Docker host. This matters when Docker runs on a remote server.
-      #
-      # LOCAL (browsing from the same machine running Docker):
-      #   Leave blank — defaults to http://localhost:8001, which works via port mapping.
-      #
-      # REMOTE SERVER (Docker on a server, accessed from another machine):
-      #   Set to the server's public IP or hostname, e.g.:
-      #     NEXT_PUBLIC_API_BASE_EXTERNAL=http://203.0.113.10:8001
-      #   Without this the browser tries localhost:8001 on the user's laptop and all
-      # API calls (including WebSocket) will fail.
-      - NEXT_PUBLIC_API_BASE_EXTERNAL=${NEXT_PUBLIC_API_BASE_EXTERNAL:-}
-      # Alternative: Direct backend API base URL for the Next.js client
-      - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE:-}
-      # Extra frontend origin(s) allowed by FastAPI CORS when auth is enabled.
-      - CORS_ORIGIN=${CORS_ORIGIN:-}
-      - CORS_ORIGINS=${CORS_ORIGINS:-}
-=======
       - "${DEEPTUTOR_DOCKER_BACKEND_PORT:-8001}:${DEEPTUTOR_DOCKER_BACKEND_PORT:-8001}"
       - "${DEEPTUTOR_DOCKER_FRONTEND_PORT:-3782}:${DEEPTUTOR_DOCKER_FRONTEND_PORT:-3782}"
->>>>>>> 85779c8 (refactor env settings and installation)
 
     volumes:
       # Mount local data directory for persistence (read-write)
