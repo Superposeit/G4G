@@ -6,11 +6,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from deeptutor.runtime.home import get_runtime_home
 from deeptutor.services.path_service import PathService
 
-from .models import CurrentUser, LOCAL_ADMIN_ID, LOCAL_ADMIN_USERNAME, UserScope
+from .models import LOCAL_ADMIN_ID, LOCAL_ADMIN_USERNAME, CurrentUser, UserScope
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = get_runtime_home()
 ADMIN_WORKSPACE_ROOT = PROJECT_ROOT / "data"
 MULTI_USER_ROOT = PROJECT_ROOT / "multi-user"
 SYSTEM_ROOT = MULTI_USER_ROOT / "_system"
@@ -64,9 +65,11 @@ def get_admin_path_service() -> PathService:
 
 
 def get_current_path_service() -> PathService:
-    from .context import get_current_user
+    from .context import get_current_user_or_none
 
-    user = get_current_user()
+    user = get_current_user_or_none()
+    if user is None:
+        return PathService.get_instance()
     if user.scope.kind == "user":
         ensure_user_workspace(user.id)
     return get_path_service_for_scope(user.scope)

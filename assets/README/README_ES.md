@@ -28,6 +28,12 @@
 
 ### 📦 Lanzamientos
 
+> **[2026.5.10]** [v1.3.10](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.10) — Corrección de CORS en Docker remoto, `DISABLE_SSL_VERIFY` en proveedores SDK, citas seguras en bloques de código y E2EE de Matrix como complemento opcional.
+
+> **[2026.5.9]** [v1.3.9](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.9) — TutorBot con Zulip y NVIDIA NIM, enrutamiento más seguro para modelos de razonamiento, `deeptutor start`, tooltips laterales y paridad del almacén de sesiones.
+
+> **[2026.5.8]** [v1.3.8](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.8) — Despliegues multiusuario opcionales con espacios aislados, permisos de administrador, rutas de autenticación y acceso runtime acotado.
+
 > **[2026.5.4]** [v1.3.7](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.7) — Correcciones de modelo de razonamiento/proveedor, historial de índice de conocimiento visible, vaciado de Co-Writer y edición de plantillas más seguros.
 
 > **[2026.5.3]** [v1.3.6](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.6) — Selección de modelos por catálogo en chat y TutorBot, reindexación RAG más segura, límites de tokens en OpenAI Responses, validación del editor de Skills.
@@ -44,6 +50,9 @@
 
 > **[2026.4.27]** [v1.3.0](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.0) — Índices KB versionados y flujo de reindexación, espacio de conocimiento rehecho, autodetección de embeddings, hub Space.
 
+<details>
+<summary><b>Lanzamientos anteriores (más de 2 semanas)</b></summary>
+
 > **[2026.4.25]** [v1.2.5](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.5) — Adjuntos persistentes y cajón de vista previa, pipelines conscientes de adjuntos, exportación Markdown de TutorBot.
 
 > **[2026.4.25]** [v1.2.4](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.4) — Adjuntos texto/código/SVG, Setup Tour en un comando, exportación Markdown del chat, UI compacta de KB.
@@ -55,9 +64,6 @@
 > **[2026.4.21]** [v1.2.1](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.1) — Límites de tokens por etapa, regenerar respuesta en todos los puntos de entrada, compatibilidad RAG y Gemma.
 
 > **[2026.4.20]** [v1.2.0](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.0) — Compilador Book Engine «libro vivo», Co-Writer multi-documento, visualizaciones HTML, @ en banco de preguntas.
-
-<details>
-<summary><b>Lanzamientos anteriores (más de 2 semanas)</b></summary>
 
 > **[2026.4.18]** [v1.1.2](https://github.com/HKUDS/DeepTutor/releases/tag/v1.1.2) — Pestaña Channels por esquema, pipeline RAG único, prompts externos.
 
@@ -141,7 +147,7 @@ Necesitas al menos una **API key** de un proveedor LLM. El Setup Tour ayuda a re
 
 ### Opción A — Setup Tour (recomendado)
 
-Asistente CLI para la primera instalación web local: entorno, dependencias Python/Node, `.env`, complementos TutorBot/Matrix/Math Animator.
+Asistente CLI para la primera instalación web local: entorno, dependencias Python/Node, `data/user/settings/*.json`, complementos TutorBot/Matrix/Math Animator.
 
 **1.** `git clone … && cd DeepTutor`
 
@@ -161,34 +167,30 @@ Luego: `python scripts/start_web.py`
 ```bash
 python -m pip install -e ".[server]"
 cd web && npm install && cd ..
-cp .env.example .env
+python scripts/start_tour.py
 ```
 
 Opcionales: `.[tutorbot]`, `.[tutorbot,matrix]`, `.[math-animator]`, `.[all]`. Node **20.9+**.
 
-Ejemplo mínimo de `.env` (LLM obligatorio; embeddings para KB):
+Ejemplo mínimo de `data/user/settings/*.json` (LLM obligatorio; embeddings para KB):
 
-```dotenv
-LLM_BINDING=openai
-LLM_MODEL=gpt-4o-mini
-LLM_API_KEY=sk-xxx
-LLM_HOST=https://api.openai.com/v1
-EMBEDDING_BINDING=openai
-EMBEDDING_MODEL=text-embedding-3-large
-EMBEDDING_API_KEY=sk-xxx
-EMBEDDING_HOST=https://api.openai.com/v1/embeddings
-EMBEDDING_DIMENSION=
+```jsonc
+// Runtime configuration now lives in data/user/settings/.
+// Model/provider credentials: model_catalog.json
+// Ports/CORS/attachments: system.json
+// Auth settings: auth.json (JWT secret stays in multi-user/_system/auth/auth_secret)
+// PocketBase and sidecars: integrations.json
 ```
 
-Tablas completas de proveedores LLM, embeddings y búsqueda web: véase el [README en inglés](../../README.md) o [`.env.example`](../../.env.example).
+Tablas completas de proveedores LLM, embeddings y búsqueda web: véase el [README en inglés](../../README.md) o [`README.md`](../../README.md).
 
 Arranque: `python scripts/start_web.py` o backend `python -m deeptutor.api.run_server` + frontend `cd web && npm run dev -- -p 3782`. Puertos por defecto **8001** / **3782**.
 
 ### Opción C — Docker
 
-`cp .env.example .env`, rellena como la opción B. Imagen GHCR: `docker compose -f docker-compose.ghcr.yml up -d`. Build local: `docker compose up -d`.
+`python scripts/start_tour.py`, rellena como la opción B. Imagen GHCR: `python scripts/docker_compose.py -f docker-compose.ghcr.yml up -d`. Build local: `python scripts/docker_compose.py up -d`.
 
-Remoto: `NEXT_PUBLIC_API_BASE_EXTERNAL`. Autenticación y PocketBase: mismos `<details>` que en inglés; despliegues multiusuario: sección [Multiusuario](#multi-user).
+Remoto: `system.next_public_api_base_external`. Autenticación y PocketBase: mismos `<details>` que en inglés; despliegues multiusuario: sección [Multiusuario](#multi-user).
 
 ### Opción D — Solo CLI
 
@@ -267,8 +269,8 @@ Capacidades, KB, sesiones, memoria y bots desde terminal; salida Rich o JSON. Re
 Al activar la autenticación, obtienes **espacios aislados por usuario** y **recursos curados por el administrador**. El primer registro es admin; el resto de cuentas es por invitación (`/admin/users`, API admin). Cada usuario solo ve LLM, KB y skills asignados.
 
 ```bash
-echo 'AUTH_ENABLED=true' >> .env
-echo 'AUTH_SECRET=<64+ caracteres aleatorios>' >> .env
+# Set auth.json enabled=true
+# JWT secret is stored in multi-user/_system/auth/auth_secret
 python scripts/start_web.py
 # http://localhost:3782/register — solo el primer registro es público
 # /admin/users → Añadir usuario → icono deslizante → asignar modelos, KB, skills
@@ -278,9 +280,7 @@ python scripts/start_web.py
 
 **Usuario:** árbol bajo `multi-user/<uid>/`, KB/skills asignados en solo lectura con insignia, ajustes redactados (sin claves ni URLs de proveedor), turnos de chat solo con modelo concedido (sin fallback silencioso).
 
-**Variables:** `AUTH_ENABLED`, `AUTH_SECRET`, `AUTH_TOKEN_EXPIRE_HOURS`, `NEXT_PUBLIC_AUTH_ENABLED` (reflejado por `start_web.py`), etc.
-
-> ⚠️ **PocketBase (`POCKETBASE_URL`) solo monousuario** — sin campo `role`, consultas sin filtrar por `user_id`. Para multiusuario deja `POCKETBASE_URL` vacío.
+> ⚠️ **PocketBase (`integrations.pocketbase_url`) solo monousuario** — sin campo `role`, consultas sin filtrar por `user_id`. Para multiusuario deja `integrations.pocketbase_url` vacío.
 
 > ⚠️ **Recomendado un solo proceso** para el primer admin; en varios workers crea el admin sin autenticación o usa almacén externo.
 

@@ -36,25 +36,12 @@ logger = logging.getLogger(__name__)
 
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
-    # Auth check — mirrors the require_auth HTTP dependency.
-    # Token is read from the ?token= query param (WebSocket headers can't
-    # carry cookies cross-origin in all browsers).
-    # Uses the same local jwt.decode() path — no network call.
-    from deeptutor.multi_user.context import reset_current_user, set_current_user
-    from deeptutor.multi_user.context import user_from_token_payload
-    from deeptutor.multi_user.paths import local_admin_user
-    from deeptutor.services.auth import AUTH_ENABLED, decode_token
+    from deeptutor.api.routers.auth import ws_auth_failed, ws_require_auth
+    from deeptutor.multi_user.context import reset_current_user
 
-    user_token = None
-    if AUTH_ENABLED:
-        token = ws.query_params.get("token") or ws.cookies.get("dt_token")
-        payload = decode_token(token) if token else None
-        if not payload:
-            await ws.close(code=4001)
-            return
-        user_token = set_current_user(user_from_token_payload(payload))
-    else:
-        user_token = set_current_user(local_admin_user())
+    user_token = await ws_require_auth(ws)
+    if user_token is ws_auth_failed:
+        return
 
     await ws.accept()
     closed = False
@@ -134,6 +121,14 @@ async def unified_websocket(ws: WebSocket) -> None:
                     )
                     continue
                 await subscribe_turn(turn["id"], after_seq=0)
+                continue
+
+            if msg_type == "ping":
+                # Client-side heartbeat. Respond with a lightweight pong so
+                # the client knows the socket is alive; the client never
+                # consumes pong as a user-visible event (see unified-ws.ts
+                # filter below) but does refresh ``lastReceivedAt`` from it.
+                await safe_send({"type": "pong"})
                 continue
 
             if msg_type == "subscribe_turn":

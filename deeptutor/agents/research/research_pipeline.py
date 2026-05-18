@@ -250,7 +250,7 @@ class ResearchPipeline:
                     # For sync functions, run in executor
                     import functools
 
-                    loop = asyncio.get_event_loop()
+                    loop = asyncio.get_running_loop()
                     result = await asyncio.wait_for(
                         loop.run_in_executor(None, functools.partial(tool_func, *args, **kwargs)),
                         timeout=timeout,
@@ -1284,13 +1284,9 @@ async def main():
     """Main function"""
     import argparse
 
-    from dotenv import load_dotenv
     import yaml
 
     from deeptutor.services.llm import get_llm_config
-
-    # Load environment variables
-    load_dotenv()
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="DR-in-KG 2.0 - Deep Research System")

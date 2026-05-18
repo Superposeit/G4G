@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl } from "@/lib/api";
 import AssistantResponse from "@/components/common/AssistantResponse";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import ProcessLogs from "@/components/common/ProcessLogs";
@@ -399,7 +399,7 @@ function ToolExecutor({
         else coerced[p.name] = raw;
       }
 
-      const res = await fetch(
+      const res = await apiFetch(
         apiUrl(`/api/v1/plugins/tools/${tool.name}/execute-stream`),
         {
           method: "POST",
@@ -837,7 +837,7 @@ function DeepQuestionTester({
               max_questions: config.max_questions,
             };
 
-      const res = await fetch(
+      const res = await apiFetch(
         apiUrl(
           `/api/v1/plugins/capabilities/${capability.name}/execute-stream`,
         ),
@@ -1235,7 +1235,7 @@ function DeepResearchTester({
     setStreaming(true);
 
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         apiUrl(
           `/api/v1/plugins/capabilities/${capability.name}/execute-stream`,
         ),
@@ -1522,7 +1522,7 @@ function CapabilityTester({
     setStreaming(true);
 
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         apiUrl(
           `/api/v1/plugins/capabilities/${capability.name}/execute-stream`,
         ),
@@ -1718,7 +1718,7 @@ export default function PlaygroundPage() {
       setLoading(true);
       try {
         const [pluginRes, knowledgeBaseList] = await Promise.all([
-          fetch(apiUrl("/api/v1/plugins/list")),
+          apiFetch(apiUrl("/api/v1/plugins/list")),
           listKnowledgeBases(),
         ]);
         const data = await pluginRes.json();
@@ -1853,12 +1853,12 @@ export default function PlaygroundPage() {
     <div className="min-h-screen bg-[var(--background)]">
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--foreground)]">
             {t("Playground")}
           </h1>
           <p className="mt-1 text-[13px] text-[var(--muted-foreground)]">
             {t(
-              "Explore the building blocks of DeepTutor: reusable tools and higher-level capabilities.",
+              "Explore the building blocks of EducaT TutorRD: reusable tools and higher-level capabilities.",
             )}
           </p>
         </div>
@@ -1953,7 +1953,7 @@ export default function PlaygroundPage() {
                               <ToolIcon size={13} strokeWidth={1.7} />
                               {t("Tool")}
                             </div>
-                            <h2 className="mt-1 text-xl font-bold tracking-tight text-[var(--foreground)]">
+                            <h2 className="font-display mt-1 text-xl font-bold tracking-tight text-[var(--foreground)]">
                               {t(getToolLabel(activeTool.name))}
                             </h2>
                             <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--muted-foreground)]">
@@ -1980,7 +1980,7 @@ export default function PlaygroundPage() {
                                 <CapIcon size={13} strokeWidth={1.7} />
                                 {t("Capability")}
                               </div>
-                              <h2 className="mt-1 text-xl font-bold tracking-tight text-[var(--foreground)]">
+                              <h2 className="font-display mt-1 text-xl font-bold tracking-tight text-[var(--foreground)]">
                                 {t(getCapabilityLabel(activeCapability.name))}
                               </h2>
                               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--muted-foreground)]">
@@ -2060,7 +2060,7 @@ export default function PlaygroundPage() {
 
                             <div className="border-t border-[var(--border)] pt-6">
                               <div className="mb-3">
-                                <h3 className="text-[14px] font-semibold text-[var(--foreground)]">
+                                <h3 className="font-display text-[14px] font-semibold text-[var(--foreground)]">
                                   {t("Try this capability")}
                                 </h3>
                                 <p className="mt-0.5 text-[12px] text-[var(--muted-foreground)]">

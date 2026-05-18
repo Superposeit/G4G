@@ -1,28 +1,21 @@
 from contextlib import asynccontextmanager
 import logging
-import os
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from deeptutor.logging import configure_logging
-from deeptutor.services.config import get_env_store
+from deeptutor.services.config import (
+    ensure_runtime_settings_files,
+    export_runtime_settings_to_env,
+    load_auth_settings,
+    load_system_settings,
+)
 from deeptutor.services.path_service import get_path_service
 
-_env_values = get_env_store().load()
-for _key in (
-    "AUTH_ENABLED",
-    "AUTH_SECRET",
-    "AUTH_TOKEN_EXPIRE_HOURS",
-    "AUTH_USERNAME",
-    "AUTH_PASSWORD_HASH",
-    "POCKETBASE_URL",
-    "POCKETBASE_ADMIN_EMAIL",
-    "POCKETBASE_ADMIN_PASSWORD",
-):
-    if _key in _env_values:
-        os.environ[_key] = _env_values[_key]
+ensure_runtime_settings_files()
+export_runtime_settings_to_env(overwrite=True)
 configure_logging()
 logger = logging.getLogger(__name__)
 
@@ -85,6 +78,46 @@ def validate_tool_consistency():
     except Exception:
         logger.exception("Failed to load configuration for validation")
         raise
+
+
+def _split_origins(value: str | None) -> list[str]:
+    if not value:
+        return []
+    origins: list[str] = []
+    seen: set[str] = set()
+    for raw in value.replace("\n", ",").split(","):
+        origin = raw.strip().rstrip("/")
+        if not origin or origin in seen:
+            continue
+        origins.append(origin)
+        seen.add(origin)
+    return origins
+
+
+def _build_cors_settings() -> dict[str, object]:
+    """Build CORS settings for both localhost and remote Docker deployments."""
+    system_settings = load_system_settings()
+    auth_settings = load_auth_settings()
+    frontend_port = str(system_settings["frontend_port"])
+    extra_origins = _split_origins(system_settings["cors_origin"]) + _split_origins(
+        ",".join(system_settings["cors_origins"])
+    )
+    origins = [
+        f"http://localhost:{frontend_port}",
+        f"http://127.0.0.1:{frontend_port}",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    for origin in extra_origins:
+        if origin not in origins:
+            origins.append(origin)
+
+    # Auth is disabled by default. In that local/single-user mode, mirror the
+    # pre-v1.3.8 behavior and allow remote Docker/LAN origins out of the box.
+    # When auth is enabled, require explicit CORS_ORIGIN(S) for credentialed
+    # cross-origin requests.
+    allow_origin_regex = None if auth_settings["enabled"] else r"https?://.*"
+    return {"allow_origins": origins, "allow_origin_regex": allow_origin_regex}
 
 
 @asynccontextmanager
@@ -188,36 +221,11 @@ async def selective_access_log(request, call_next):
     return response
 
 
-# Configure CORS.
-# allow_origins=["*"] is incompatible with allow_credentials=True (browsers reject it).
-# We build an explicit list that covers both localhost and 127.0.0.1 variants so the
-# frontend works regardless of which loopback alias the browser resolves to.
-_frontend_port = os.getenv("FRONTEND_PORT", "3782")
-# CORS_ORIGIN: optional comma-separated list of extra allowed origins.
-# CORS_HOST: optional LAN/public IP or hostname — auto-generates an origin
-#   for that host + frontend port (e.g. CORS_HOST=192.168.100.2).
-_extra_origins_raw = os.getenv("CORS_ORIGIN", "")
-_cors_host = os.getenv("CORS_HOST", "").strip()
-_cors_origins = [
-    f"http://localhost:{_frontend_port}",
-    f"http://127.0.0.1:{_frontend_port}",
-    "http://localhost:3000",  # common Next.js default
-    "http://127.0.0.1:3000",
-]
-# Support comma-separated list in CORS_ORIGIN
-for _o in _extra_origins_raw.split(","):
-    _o = _o.strip()
-    if _o and _o not in _cors_origins:
-        _cors_origins.append(_o)
-# Auto-generate LAN origin from CORS_HOST
-if _cors_host:
-    _lan_origin = f"http://{_cors_host}:{_frontend_port}"
-    if _lan_origin not in _cors_origins:
-        _cors_origins.append(_lan_origin)
-
+_cors_settings = _build_cors_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
+    allow_origins=_cors_settings["allow_origins"],
+    allow_origin_regex=_cors_settings["allow_origin_regex"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

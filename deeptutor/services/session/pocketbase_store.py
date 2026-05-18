@@ -67,10 +67,12 @@ class PocketBaseSessionStore:
         self,
         title: str | None = None,
         session_id: str | None = None,
+        kind: str = "chat",
     ) -> dict[str, Any]:
         now = time.time()
         resolved_id = session_id or f"unified_{int(now * 1000)}_{uuid.uuid4().hex[:8]}"
         resolved_title = (title or "New conversation").strip() or "New conversation"
+        resolved_kind = (kind or "chat").strip() or "chat"
 
         def _create():
             return (
@@ -85,12 +87,15 @@ class PocketBaseSessionStore:
                         "preferences_json": {},
                         "capability": "",
                         "status": "idle",
+                        "kind": resolved_kind,
                     }
                 )
             )
 
         record = await asyncio.to_thread(_create)
-        return self._session_record_to_dict(record, resolved_id, resolved_title, now)
+        result = self._session_record_to_dict(record, resolved_id, resolved_title, now)
+        result.setdefault("kind", resolved_kind)
+        return result
 
     async def get_session(self, session_id: str) -> dict[str, Any] | None:
         def _get():
@@ -109,12 +114,16 @@ class PocketBaseSessionStore:
             return None
         return self._session_record_to_dict(record)
 
-    async def ensure_session(self, session_id: str | None = None) -> dict[str, Any]:
+    async def ensure_session(
+        self,
+        session_id: str | None = None,
+        kind: str = "chat",
+    ) -> dict[str, Any]:
         if session_id:
             session = await self.get_session(session_id)
             if session is not None:
                 return session
-        return await self.create_session()
+        return await self.create_session(kind=kind)
 
     def _session_record_to_dict(
         self,
@@ -140,6 +149,7 @@ class PocketBaseSessionStore:
             "capability": getattr(record, "capability", "") or "",
             "status": getattr(record, "status", "idle") or "idle",
             "active_turn_id": "",
+            "kind": getattr(record, "kind", "") or "chat",
         }
 
     async def update_session_title(self, session_id: str, title: str) -> bool:
@@ -180,19 +190,25 @@ class PocketBaseSessionStore:
             logger.warning(f"delete_session failed: {exc}")
             return False
 
-    async def list_sessions(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+    async def list_sessions(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        kind: str | None = None,
+    ) -> list[dict[str, Any]]:
         page = (offset // limit) + 1
+        filter_kind = (kind or "").strip()
 
         def _list():
-            return (
-                _pb()
-                .collection("sessions")
-                .get_list(
-                    page,
-                    limit,
-                    query_params={"sort": "-updated"},
-                )
-            )
+            query_params: dict[str, Any] = {"sort": "-updated"}
+            if filter_kind:
+                # PocketBase filter syntax. Existing records without ``kind`` set
+                # are treated as ``chat`` for backward compatibility.
+                if filter_kind == "chat":
+                    query_params["filter"] = 'kind="chat" || kind=""'
+                else:
+                    query_params["filter"] = f'kind="{filter_kind}"'
+            return _pb().collection("sessions").get_list(page, limit, query_params=query_params)
 
         try:
             result = await asyncio.to_thread(_list)
@@ -273,25 +289,27 @@ class PocketBaseSessionStore:
         capability: str = "",
         events: list[dict[str, Any]] | None = None,
         attachments: list[dict[str, Any]] | None = None,
+        metadata: dict[str, Any] | None = None,
+        parent_message_id: int | None = None,
     ) -> int:
+        # ``parent_message_id`` is accepted to match the protocol shape but is
+        # not yet wired through PocketBase storage — branching only works on
+        # the SQLite backend today.
+        _ = parent_message_id
         now = time.time()
 
         def _add():
-            record = (
-                _pb()
-                .collection("messages")
-                .create(
-                    {
-                        "session_id": session_id,
-                        "role": role,
-                        "content": content or "",
-                        "capability": capability or "",
-                        "events_json": events or [],
-                        "attachments_json": attachments or [],
-                        "msg_created_at": now,
-                    }
-                )
-            )
+            payload = {
+                "session_id": session_id,
+                "role": role,
+                "content": content or "",
+                "capability": capability or "",
+                "events_json": events or [],
+                "attachments_json": attachments or [],
+                "metadata_json": metadata or {},
+                "msg_created_at": now,
+            }
+            record = _pb().collection("messages").create(payload)
             # Update session title if still default
             sessions = (
                 _pb()
@@ -313,6 +331,45 @@ class PocketBaseSessionStore:
             logger.warning(f"add_message failed: {exc}")
             return 0
 
+    async def delete_message(self, message_id: int | str) -> bool:
+        def _delete():
+            _pb().collection("messages").delete(str(message_id))
+            return True
+
+        try:
+            return await asyncio.to_thread(_delete)
+        except Exception as exc:
+            logger.warning(f"delete_message failed: {exc}")
+            return False
+
+    async def get_last_message(
+        self, session_id: str, role: str | None = None
+    ) -> dict[str, Any] | None:
+        filter_str = f'session_id="{session_id}"'
+        if role:
+            filter_str += f' && role="{role}"'
+
+        def _get():
+            records = (
+                _pb()
+                .collection("messages")
+                .get_full_list(
+                    query_params={
+                        "filter": filter_str,
+                        "sort": "-msg_created_at",
+                        "perPage": 1,
+                    }
+                )
+            )
+            return records[0] if records else None
+
+        try:
+            record = await asyncio.to_thread(_get)
+            return self._message_record_to_dict(record) if record is not None else None
+        except Exception as exc:
+            logger.warning(f"get_last_message failed: {exc}")
+            return None
+
     async def get_messages(self, session_id: str) -> list[dict[str, Any]]:
         def _get():
             return (
@@ -333,7 +390,12 @@ class PocketBaseSessionStore:
             logger.warning(f"get_messages failed: {exc}")
             return []
 
-    async def get_messages_for_context(self, session_id: str) -> list[dict[str, Any]]:
+    async def get_messages_for_context(
+        self, session_id: str, leaf_message_id: int | None = None
+    ) -> list[dict[str, Any]]:
+        # leaf_message_id (branch-aware context) is not supported on PocketBase
+        # yet; fall back to the linear, append-only view.
+        _ = leaf_message_id
         messages = await self.get_messages(session_id)
         return [
             {"id": m["id"], "role": m["role"], "content": m["content"] or ""}
@@ -350,6 +412,7 @@ class PocketBaseSessionStore:
             "capability": getattr(record, "capability", "") or "",
             "events": _json_loads(getattr(record, "events_json", None), []),
             "attachments": _json_loads(getattr(record, "attachments_json", None), []),
+            "metadata": _json_loads(getattr(record, "metadata_json", None), {}),
             "created_at": _to_float(getattr(record, "msg_created_at", None)),
         }
 

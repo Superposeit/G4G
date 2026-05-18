@@ -41,7 +41,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { apiUrl } from "@/lib/api";
+import { apiFetch, apiUrl } from "@/lib/api";
 import { listKnowledgeBases } from "@/lib/knowledge-api";
 import {
   getCoWriterDocument,
@@ -955,7 +955,7 @@ export default function CoWriterPage() {
     selectionRequestAbortRef.current = controller;
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         apiUrl("/api/v1/co_writer/edit_react/stream"),
         {
           method: "POST",
@@ -1073,7 +1073,7 @@ export default function CoWriterPage() {
     setError("");
     setStatus("");
     try {
-      const response = await fetch(apiUrl("/api/v1/co_writer/edit"), {
+      const response = await apiFetch(apiUrl("/api/v1/co_writer/edit"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1107,7 +1107,7 @@ export default function CoWriterPage() {
     setError("");
     setStatus("");
     try {
-      const response = await fetch(apiUrl("/api/v1/co_writer/automark"), {
+      const response = await apiFetch(apiUrl("/api/v1/co_writer/automark"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: markdown }),
@@ -1648,7 +1648,7 @@ export default function CoWriterPage() {
   if (docNotFound) {
     return (
       <div className="flex h-full min-h-full flex-col items-center justify-center gap-4 bg-[var(--background)] p-10 text-center">
-        <p className="text-lg font-medium text-[var(--foreground)]">
+        <p className="font-display text-lg font-medium text-[var(--foreground)]">
           {t("Document not found")}
         </p>
         <p className="text-sm text-[var(--muted-foreground)]">
@@ -2240,7 +2240,7 @@ export default function CoWriterPage() {
         >
           <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-              <h2 className="text-sm font-semibold text-[var(--foreground)]">
+              <h2 className="font-display text-sm font-semibold text-[var(--foreground)]">
                 {t("Full Draft AI Edit")}
               </h2>
               <button
@@ -2359,7 +2359,7 @@ export default function CoWriterPage() {
             <div className="border-b border-[var(--border)] px-4 py-3">
               <h2
                 id="co-writer-confirm-title"
-                className="text-sm font-semibold text-[var(--foreground)]"
+                className="font-display text-sm font-semibold text-[var(--foreground)]"
               >
                 {confirmActionCopy.title}
               </h2>
@@ -2373,7 +2373,9 @@ export default function CoWriterPage() {
 
             <div className="px-4 py-3">
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-                {t("Undo is available with Ctrl/Cmd+Z or the toolbar Undo button.")}
+                {t(
+                  "Undo is available with Ctrl/Cmd+Z or the toolbar Undo button.",
+                )}
               </div>
             </div>
 

@@ -28,6 +28,12 @@
 
 ### 📦 Versions
 
+> **[2026.5.10]** [v1.3.10](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.10) — Correction du CORS Docker distant, `DISABLE_SSL_VERIFY` pour les fournisseurs SDK, citations sûres dans les blocs de code, et E2EE Matrix en extension optionnelle.
+
+> **[2026.5.9]** [v1.3.9](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.9) — TutorBot prend en charge Zulip et NVIDIA NIM, routage plus sûr des modèles de raisonnement, `deeptutor start`, infobulles latérales et parité du stockage de sessions.
+
+> **[2026.5.8]** [v1.3.8](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.8) — Déploiements multi-utilisateurs optionnels avec espaces isolés, droits admin, routes d’authentification et accès runtime limité.
+
 > **[2026.5.4]** [v1.3.7](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.7) — Correctifs modèles de raisonnement / fournisseurs, historique d’index des connaissances visible, vidage Co-Writer et édition de modèles plus sûrs.
 
 > **[2026.5.3]** [v1.3.6](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.6) — Sélection de modèles par catalogue (chat et TutorBot), réindexation RAG plus sûre, plafonds de tokens OpenAI Responses, validation de l’éditeur Skills.
@@ -44,6 +50,9 @@
 
 > **[2026.4.27]** [v1.3.0](https://github.com/HKUDS/DeepTutor/releases/tag/v1.3.0) — Index KB versionnés et flux de réindexation, espace connaissances refait, auto-détection d’embeddings, hub Space.
 
+<details>
+<summary><b>Anciennes versions (plus de 2 semaines)</b></summary>
+
 > **[2026.4.25]** [v1.2.5](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.5) — Pièces jointes persistantes et tiroir d’aperçu, pipelines sensibles aux PJ, export Markdown TutorBot.
 
 > **[2026.4.25]** [v1.2.4](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.4) — PJ texte/code/SVG, Setup Tour en une commande, export Markdown du chat, UI KB compacte.
@@ -55,9 +64,6 @@
 > **[2026.4.21]** [v1.2.1](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.1) — Plafonds de tokens par étape, régénérer partout, compatibilité RAG & Gemma.
 
 > **[2026.4.20]** [v1.2.0](https://github.com/HKUDS/DeepTutor/releases/tag/v1.2.0) — Compilateur Book Engine « livre vivant », Co-Writer multi-documents, HTML interactif, @ dans la banque de questions.
-
-<details>
-<summary><b>Anciennes versions (plus de 2 semaines)</b></summary>
 
 > **[2026.4.18]** [v1.1.2](https://github.com/HKUDS/DeepTutor/releases/tag/v1.1.2) — Onglet Channels piloté par schéma, pipeline RAG unique, prompts externalisés.
 
@@ -141,7 +147,7 @@ Au moins une **clé API** LLM. Le Setup Tour guide la saisie.
 
 ### Option A — Setup Tour (recommandé)
 
-Assistant CLI pour première installation web : environnement, dépendances Python/Node, `.env`, options TutorBot/Matrix/Math Animator. Commandes identiques au [README anglais](../../README.md) : clone, `venv`/PowerShell/Conda, puis `python scripts/start_tour.py`, puis `python scripts/start_web.py`. Mise à jour : `python scripts/update.py`.
+Assistant CLI pour première installation web : environnement, dépendances Python/Node, `data/user/settings/*.json`, options TutorBot/Matrix/Math Animator. Commandes identiques au [README anglais](../../README.md) : clone, `venv`/PowerShell/Conda, puis `python scripts/start_tour.py`, puis `python scripts/start_web.py`. Mise à jour : `python scripts/update.py`.
 
 <a id="option-b--manual-local-install"></a>
 ### Option B — Installation locale manuelle
@@ -149,18 +155,18 @@ Assistant CLI pour première installation web : environnement, dépendances Pyth
 ```bash
 python -m pip install -e ".[server]"
 cd web && npm install && cd ..
-cp .env.example .env
+python scripts/start_tour.py
 ```
 
 Extras : `.[tutorbot]`, `.[tutorbot,matrix]`, `.[math-animator]`, `.[all]`. Node **20.9+**.
 
-Exemple `.env` (LLM requis ; embeddings pour les KB) — voir [README anglais](../../README.md) pour les tableaux complets des fournisseurs.
+Exemple `data/user/settings/*.json` (LLM requis ; embeddings pour les KB) — voir [README anglais](../../README.md) pour les tableaux complets des fournisseurs.
 
 Démarrage : `python scripts/start_web.py` ou `python -m deeptutor.api.run_server` + `cd web && npm run dev -- -p 3782`. Ports **8001** / **3782**.
 
 ### Option C — Docker
 
-`docker compose -f docker-compose.ghcr.yml up -d` ou `docker compose up -d`. Variable distante `NEXT_PUBLIC_API_BASE_EXTERNAL`. Détails auth/PocketBase identiques à la version anglaise ; multi-tenant : [Multi-utilisateur](#multi-user).
+`python scripts/docker_compose.py -f docker-compose.ghcr.yml up -d` ou `python scripts/docker_compose.py up -d`. Variable distante `system.next_public_api_base_external`. Détails auth/PocketBase identiques à la version anglaise ; multi-tenant : [Multi-utilisateur](#multi-user).
 
 ### Option D — CLI seule
 
@@ -224,15 +230,15 @@ Référence complète des sous-commandes : [README anglais](../../README.md).
 Activez l’auth pour un déploiement multi-locataire : premier inscrit = admin ; comptes suivants sur invitation. Ressources (LLM, KB, skills) attribuées par l’admin.
 
 ```bash
-echo 'AUTH_ENABLED=true' >> .env
-echo 'AUTH_SECRET=<64+ caractères aléatoires>' >> .env
+# Set auth.json enabled=true
+# JWT secret is stored in multi-user/_system/auth/auth_secret
 python scripts/start_web.py
 # http://localhost:3782/register puis /admin/users
 ```
 
 Admin : `/settings` complet, gestion utilisateurs, grants (IDs logiques uniquement), audit `multi-user/_system/audit/usage.jsonl`. Utilisateur : arborescence `multi-user/<uid>/`, ressources assignées en lecture seule, réglages sans secrets, modèle imposé sans repli silencieux.
 
-> ⚠️ **PocketBase** (`POCKETBASE_URL`) : **mono-utilisateur** pour l’instant — pas de champ `role`, pas de filtre `user_id`. Multi-utilisateur : laissez `POCKETBASE_URL` vide.
+> ⚠️ **PocketBase** (`integrations.pocketbase_url`) : **mono-utilisateur** pour l’instant — pas de champ `role`, pas de filtre `user_id`. Multi-utilisateur : laissez `integrations.pocketbase_url` vide.
 
 > ⚠️ **Processus unique recommandé** pour la promotion du premier admin ; plusieurs workers : provisionnement hors ligne ou stockage externe.
 

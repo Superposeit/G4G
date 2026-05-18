@@ -447,7 +447,7 @@ function StatCard({
         {label}
       </div>
       <div
-        className={`mt-1 text-xl font-semibold ${accent || "text-[var(--foreground)]"}`}
+        className={`mt-1 font-display text-xl font-semibold ${accent || "text-[var(--foreground)]"}`}
       >
         {value}
       </div>

@@ -57,7 +57,7 @@ export default function NotebookSelector({
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
       <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-4 py-3.5">
-        <h2 className="flex items-center gap-2 text-[14px] font-semibold text-[var(--foreground)]">
+        <h2 className="font-display flex items-center gap-2 text-[14px] font-semibold text-[var(--foreground)]">
           <NotebookPen className="h-3.5 w-3.5 text-[var(--muted-foreground)]" />
           {t("Select Source (Cross-Notebook)")}
         </h2>

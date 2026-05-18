@@ -19,6 +19,7 @@ import json_repair
 from openai import AsyncOpenAI
 
 from deeptutor.services.llm.capabilities import disable_response_format_at_runtime
+from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.services.llm.provider_core.base import LLMProvider, LLMResponse, ToolCallRequest
 from deeptutor.services.llm.provider_core.openai_responses import (
     adapt_chat_kwargs_to_responses,
@@ -55,6 +56,9 @@ _THINKING_STYLE_MAP = {
     "enable_thinking": lambda enabled: {"enable_thinking": enabled},
     "reasoning_split": lambda enabled: {"reasoning_split": enabled},
 }
+_THINKING_DISABLED_BY_DEFAULT: tuple[tuple[str, str], ...] = (
+    ("deepseek", "deepseek-v4-flash"),
+)
 
 
 def _short_tool_id() -> str:
@@ -104,6 +108,16 @@ def _responses_circuit_key(
     return f"{model_name}|{effort}"
 
 
+def _disable_thinking_by_default(spec: "ProviderSpec | None", model_name: str) -> bool:
+    if not spec:
+        return False
+    normalized = (model_name or "").strip().lower()
+    return any(
+        spec.name == provider and pattern in normalized
+        for provider, pattern in _THINKING_DISABLED_BY_DEFAULT
+    )
+
+
 class OpenAICompatProvider(LLMProvider):
     """Unified provider for all OpenAI-compatible APIs.
 
@@ -142,6 +156,7 @@ class OpenAICompatProvider(LLMProvider):
             base_url=effective_base,
             default_headers=default_headers,
             max_retries=0,
+            **openai_client_kwargs(),
         )
         self._responses_failures: dict[str, int] = {}
         self._responses_tripped_at: dict[str, float] = {}
@@ -308,13 +323,26 @@ class OpenAICompatProvider(LLMProvider):
         if spec and spec.name == "dashscope" and semantic_effort == "minimal":
             wire_effort = "minimum"
 
-        if wire_effort:
+        # Providers with thinking_style handle thinking via extra_body.
+        # "minimal" means disable thinking — only send via extra_body, never
+        # as a top-level reasoning_effort (e.g. DeepSeek rejects it).
+        if wire_effort and not (spec and spec.thinking_style and semantic_effort == "minimal"):
             kwargs["reasoning_effort"] = wire_effort
 
         if spec and spec.thinking_style and reasoning_effort is not None:
             thinking_enabled = semantic_effort != "minimal"
             extra = _THINKING_STYLE_MAP.get(spec.thinking_style, lambda _enabled: None)(
                 thinking_enabled
+            )
+            if extra:
+                kwargs.setdefault("extra_body", {}).update(extra)
+        elif (
+            spec
+            and spec.thinking_style
+            and _disable_thinking_by_default(spec, model_name)
+        ):
+            extra = _THINKING_STYLE_MAP.get(spec.thinking_style, lambda _enabled: None)(
+                False
             )
             if extra:
                 kwargs.setdefault("extra_body", {}).update(extra)

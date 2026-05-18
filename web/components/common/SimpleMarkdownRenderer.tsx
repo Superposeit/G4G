@@ -185,7 +185,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h1
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-2xl font-bold tracking-tight ${textColor} ${
+          className={`scroll-mt-20 font-display text-2xl font-bold tracking-tight ${textColor} ${
             variant === "compact" ? "mt-5 mb-2" : "mt-8 mb-4"
           } ${headingClassName || ""}`}
           {...props}
@@ -199,7 +199,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h2
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-xl font-semibold tracking-tight ${textColor} ${
+          className={`scroll-mt-20 font-display text-xl font-semibold tracking-tight ${textColor} ${
             variant === "compact" ? "mt-4 mb-2" : "mt-7 mb-3"
           } ${headingClassName || ""}`}
           {...props}
@@ -213,7 +213,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h3
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-lg font-semibold tracking-tight ${textColor} ${
+          className={`scroll-mt-20 font-display text-lg font-semibold tracking-tight ${textColor} ${
             variant === "compact" ? "mt-4 mb-1.5" : "mt-6 mb-2.5"
           } ${headingClassName || ""}`}
           {...props}
@@ -227,7 +227,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h4
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-base font-semibold ${textColor} ${
+          className={`scroll-mt-20 font-display text-base font-semibold ${textColor} ${
             variant === "compact" ? "mt-3 mb-1.5" : "mt-5 mb-2"
           } ${headingClassName || ""}`}
           {...props}
@@ -241,7 +241,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h5
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-sm font-semibold ${textColor} ${
+          className={`scroll-mt-20 font-display text-sm font-semibold ${textColor} ${
             variant === "compact" ? "mt-3 mb-1.5" : "mt-4 mb-2"
           } ${headingClassName || ""}`}
           {...props}
@@ -255,7 +255,7 @@ export default function SimpleMarkdownRenderer({
       return (
         <h6
           id={headingId(clean)}
-          className={`scroll-mt-20 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--muted-foreground)] ${
+          className={`scroll-mt-20 font-display text-sm font-semibold uppercase tracking-wide text-[var(--muted-foreground)] ${
             variant === "compact" ? "mt-3 mb-1.5" : "mt-4 mb-2"
           } ${headingClassName || ""}`}
           {...props}
@@ -310,11 +310,15 @@ export default function SimpleMarkdownRenderer({
       const raw = String(children).replace(/\n$/, "");
 
       if (raw.includes("\n")) {
+        // Use the same #1f2937 / #e5e7eb palette as RichMarkdownRenderer and
+        // RichCodeBlock so any stream-time fallback from Rich → Simple (or
+        // first-paint via Simple before the rich lock engages) looks visually
+        // identical to its rich counterpart.
         return (
           <div
-            className={`md-code-block ${gap} overflow-hidden rounded-xl border border-[var(--border)] bg-[#292524]`}
+            className={`md-code-block ${gap} overflow-hidden rounded-xl border border-[var(--border)] bg-[#1f2937]`}
           >
-            <pre className="overflow-x-auto p-4 text-sm leading-relaxed text-[#D6D3D1]">
+            <pre className="overflow-x-auto p-4 text-sm leading-relaxed text-[#e5e7eb]">
               <code className="md-code-block__code" {...props}>
                 {raw}
               </code>

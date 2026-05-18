@@ -17,6 +17,7 @@ import uuid
 import json_repair
 from openai import AsyncOpenAI
 
+from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 if TYPE_CHECKING:
@@ -39,11 +40,24 @@ _DEFAULT_OPENROUTER_HEADERS = {
     "HTTP-Referer": "https://github.com/HKUDS/DeepTutor",
     "X-OpenRouter-Title": "DeepTutor",
 }
+_THINKING_DISABLED_BY_DEFAULT: tuple[tuple[str, str], ...] = (
+    ("deepseek", "deepseek-v4-flash"),
+)
 
 
 def _short_tool_id() -> str:
     """9-char alphanumeric ID compatible with all providers (incl. Mistral)."""
     return "".join(secrets.choice(_ALNUM) for _ in range(9))
+
+
+def _disable_thinking_by_default(spec: ProviderSpec | None, model_name: str) -> bool:
+    if not spec:
+        return False
+    normalized = (model_name or "").strip().lower()
+    return any(
+        spec.name == provider and pattern in normalized
+        for provider, pattern in _THINKING_DISABLED_BY_DEFAULT
+    )
 
 
 def _get(obj: Any, key: str) -> Any:
@@ -108,6 +122,7 @@ class OpenAICompatProvider(LLMProvider):
             base_url=effective_base,
             default_headers=default_headers,
             max_retries=0,
+            **openai_client_kwargs(),
         )
 
     def _setup_env(self, api_key: str, api_base: str | None) -> None:
@@ -257,12 +272,9 @@ class OpenAICompatProvider(LLMProvider):
                     kwargs.update(overrides)
                     break
 
-        if reasoning_effort:
-            kwargs["reasoning_effort"] = reasoning_effort
-
+        extra: dict[str, Any] | None = None
         if spec and reasoning_effort is not None:
             thinking_enabled = reasoning_effort.lower() != "minimal"
-            extra: dict[str, Any] | None = None
             if spec.name == "dashscope":
                 extra = {"enable_thinking": thinking_enabled}
             elif spec.name in (
@@ -270,10 +282,23 @@ class OpenAICompatProvider(LLMProvider):
                 "volcengine_coding_plan",
                 "byteplus",
                 "byteplus_coding_plan",
+                "deepseek",
             ):
                 extra = {"thinking": {"type": "enabled" if thinking_enabled else "disabled"}}
+            elif spec.name == "minimax":
+                extra = {"reasoning_split": thinking_enabled}
             if extra:
                 kwargs.setdefault("extra_body", {}).update(extra)
+        elif spec and _disable_thinking_by_default(spec, model_name):
+            if spec.name == "deepseek":
+                kwargs.setdefault("extra_body", {}).update(
+                    {"thinking": {"type": "disabled"}}
+                )
+
+        # Providers that handle thinking via extra_body don't need a
+        # top-level reasoning_effort when the intent is to disable thinking.
+        if reasoning_effort and not (extra and reasoning_effort.lower() == "minimal"):
+            kwargs["reasoning_effort"] = reasoning_effort
 
         if tools:
             kwargs["tools"] = tools
@@ -561,7 +586,8 @@ class OpenAICompatProvider(LLMProvider):
             tool_choice,
         )
         kwargs["stream"] = True
-        kwargs["stream_options"] = {"include_usage": True}
+        if self._spec is None or self._spec.supports_stream_options:
+            kwargs["stream_options"] = {"include_usage": True}
         idle_timeout_s = 90
         try:
             stream = await self._client.chat.completions.create(**kwargs)

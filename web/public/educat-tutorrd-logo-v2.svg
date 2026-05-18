@@ -1,0 +1,119 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="366"
+  height="274"
+  viewBox="0 0 366 274"
+  fill="none"
+>
+  <rect width="366" height="274" rx="18" fill="#10285D" />
+
+  <defs>
+    <linearGradient id="goldV2" x1="46" y1="28" x2="321" y2="247" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D9B13A" />
+      <stop offset="1" stop-color="#B88E17" />
+    </linearGradient>
+    <linearGradient id="pageLeftV2" x1="80" y1="70" x2="179" y2="229" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#213A78" />
+      <stop offset="1" stop-color="#162B64" />
+    </linearGradient>
+    <linearGradient id="pageRightV2" x1="186" y1="84" x2="292" y2="227" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2C4A8D" />
+      <stop offset="1" stop-color="#17336E" />
+    </linearGradient>
+  </defs>
+
+  <g>
+    <path
+      d="M183 104C161 78 128 72 92 74V205C122 203 152 207 183 232V104Z"
+      fill="url(#pageLeftV2)"
+    />
+    <path
+      d="M183 104C205 79 238 74 274 76V203C243 201 214 206 183 232V104Z"
+      fill="url(#pageRightV2)"
+    />
+
+    <path
+      d="M64 100V225C103 220 146 221 183 242C220 221 263 220 302 225V100"
+      stroke="url(#goldV2)"
+      stroke-width="8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M78 84V210C111 207 147 209 183 229C219 209 255 207 288 210V84"
+      stroke="url(#goldV2)"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M92 74C128 72 161 78 183 104C205 79 238 74 274 76"
+      stroke="url(#goldV2)"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <path
+      d="M63 223C104 218 145 220 183 240"
+      stroke="url(#goldV2)"
+      stroke-width="5"
+      stroke-linecap="round"
+    />
+    <path
+      d="M303 223C262 218 221 220 183 240"
+      stroke="url(#goldV2)"
+      stroke-width="5"
+      stroke-linecap="round"
+    />
+    <path
+      d="M74 210C113 206 148 209 183 229"
+      stroke="url(#goldV2)"
+      stroke-width="4"
+      stroke-linecap="round"
+      opacity="0.95"
+    />
+    <path
+      d="M292 210C253 206 218 209 183 229"
+      stroke="url(#goldV2)"
+      stroke-width="4"
+      stroke-linecap="round"
+      opacity="0.95"
+    />
+
+    <path d="M183 104V232" stroke="#10265B" stroke-width="8" stroke-linecap="round" />
+
+    <path d="M55 101V224" stroke="url(#goldV2)" stroke-width="7" stroke-linecap="round" />
+    <path d="M70 90V214" stroke="url(#goldV2)" stroke-width="7" stroke-linecap="round" />
+    <path d="M311 90V214" stroke="url(#goldV2)" stroke-width="7" stroke-linecap="round" />
+    <path d="M326 101V224" stroke="url(#goldV2)" stroke-width="7" stroke-linecap="round" />
+
+    <path
+      d="M183 24L190 42L209 49L191 56L183 76L176 56L157 49L175 42L183 24Z"
+      fill="url(#goldV2)"
+    />
+
+    <g stroke="url(#goldV2)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M219 101V137L205 151V178L217 190V208" />
+      <path d="M237 111V150L220 167" />
+      <path d="M255 102V138L240 153V179" />
+      <path d="M270 106V126" />
+      <path d="M270 146V160L257 173" />
+      <path d="M286 102V124" />
+      <path d="M286 151V169L271 183" />
+      <path d="M237 166V202" />
+    </g>
+
+    <g fill="url(#goldV2)">
+      <circle cx="219" cy="101" r="5" />
+      <circle cx="237" cy="111" r="5" />
+      <circle cx="255" cy="102" r="5" />
+      <circle cx="270" cy="106" r="5" />
+      <circle cx="286" cy="102" r="5" />
+      <circle cx="270" cy="146" r="5" />
+      <circle cx="286" cy="151" r="5" />
+      <circle cx="257" cy="173" r="5" />
+      <circle cx="237" cy="166" r="5" />
+    </g>
+  </g>
+</svg>

@@ -146,7 +146,7 @@ export default function AgentsPage() {
       <div className="mx-auto max-w-[960px] px-6 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
+          <h1 className="font-display text-[24px] font-semibold tracking-tight text-[var(--foreground)]">
             {t("TutorBot Agents")}
           </h1>
           {toast ? (
@@ -735,7 +735,7 @@ function ChannelsTab({
         <>
           {/* Globals (Delivery) */}
           <div className="rounded-xl border border-[var(--border)] p-4 space-y-3">
-            <h3 className="text-[13px] font-medium text-[var(--foreground)]">
+            <h3 className="font-display text-[13px] font-medium text-[var(--foreground)]">
               {t("Delivery")}
             </h3>
             <label className="flex items-center gap-2 text-[13px]">
@@ -810,7 +810,7 @@ function ChannelsTab({
               ) : (
                 <>
                   <div className="flex items-baseline justify-between">
-                    <h3 className="text-[14px] font-medium text-[var(--foreground)]">
+                    <h3 className="font-display text-[14px] font-medium text-[var(--foreground)]">
                       {activeEntry.display_name}
                     </h3>
                     <code className="text-[11px] text-[var(--muted-foreground)]">
@@ -1080,7 +1080,7 @@ function BotsTab({
       {showCreate && (
         <div className="mb-6 rounded-xl border border-[var(--border)] p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[15px] font-medium text-[var(--foreground)]">
+            <h2 className="font-display text-[15px] font-medium text-[var(--foreground)]">
               {t("Create TutorBot")}
             </h2>
             <button
@@ -1504,7 +1504,9 @@ function ProfilesTab({
               }),
             });
             if (tplRes.status === 409) {
-              onToast(t("A soul with this id already exists, try another name"));
+              onToast(
+                t("A soul with this id already exists, try another name"),
+              );
               return false;
             }
             if (!tplRes.ok) {
@@ -1756,7 +1758,7 @@ function ProfilesTab({
       {saveModalOpen && activeFile === "SOUL.md" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--background)] p-5 shadow-xl">
-            <h3 className="text-[15px] font-medium text-[var(--foreground)]">
+            <h3 className="font-display text-[15px] font-medium text-[var(--foreground)]">
               {t("Save SOUL.md")}
             </h3>
             <p className="mt-1 text-[12px] text-[var(--muted-foreground)]">
@@ -1847,7 +1849,7 @@ function ProfilesTab({
       {replaceModalOpen && activeFile === "SOUL.md" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--background)] p-5 shadow-xl">
-            <h3 className="text-[15px] font-medium text-[var(--foreground)]">
+            <h3 className="font-display text-[15px] font-medium text-[var(--foreground)]">
               {t("Replace SOUL.md content?")}
             </h3>
             <p className="mt-1 text-[12px] text-[var(--muted-foreground)]">
@@ -2018,7 +2020,7 @@ function SoulsTab({
       {creating && (
         <div className="rounded-xl border border-[var(--border)] p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[15px] font-medium text-[var(--foreground)]">
+            <h2 className="font-display text-[15px] font-medium text-[var(--foreground)]">
               {t("New Soul")}
             </h2>
             <button

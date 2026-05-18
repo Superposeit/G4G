@@ -113,11 +113,11 @@ export default function KnowledgeBaseDetail({
   return (
     <main className="flex h-full flex-1 flex-col overflow-hidden bg-[var(--background)]">
       {/* Header */}
-      <div className="border-b border-[var(--border)] bg-[var(--card)] px-6 py-4">
+      <div className="border-b border-[var(--border)] bg-[var(--card)] px-4 py-4 md:px-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-[18px] font-semibold tracking-tight text-[var(--foreground)]">
+              <h1 className="font-display truncate text-[18px] font-semibold tracking-tight text-[var(--foreground)]">
                 {kb.name}
               </h1>
               {kb.is_default && (
@@ -173,7 +173,7 @@ export default function KnowledgeBaseDetail({
         {section === "files" ? (
           <KbFilesTab key={kb.name} kb={kb} task={task} />
         ) : (
-          <div className="h-full overflow-y-auto px-6 py-5">
+          <div className="h-full overflow-y-auto px-4 py-4 md:px-6 md:py-5">
             <div className={fullBleed ? "" : "mx-auto max-w-3xl"}>
               {section === "add" && (
                 <KbDocumentsSection

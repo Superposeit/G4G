@@ -238,7 +238,7 @@ export default function NotebooksSection() {
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <Plus size={15} className="text-[var(--muted-foreground)]" />
-          <h2 className="text-[13.5px] font-semibold text-[var(--foreground)]">
+          <h2 className="font-display text-[13.5px] font-semibold text-[var(--foreground)]">
             {t("Create notebook")}
           </h2>
           <span className="ml-1 text-[11.5px] text-[var(--muted-foreground)]">
@@ -274,7 +274,7 @@ export default function NotebooksSection() {
         <div className="mb-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <NotebookPen size={15} className="text-[var(--muted-foreground)]" />
-            <h2 className="text-[13.5px] font-semibold text-[var(--foreground)]">
+            <h2 className="font-display text-[13.5px] font-semibold text-[var(--foreground)]">
               {t("Your notebooks")}
             </h2>
             <span className="rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[10px] tabular-nums text-[var(--muted-foreground)]">
@@ -372,7 +372,7 @@ export default function NotebooksSection() {
                         backgroundColor: selected.color || "var(--primary)",
                       }}
                     />
-                    <h3 className="text-[15px] font-semibold text-[var(--foreground)]">
+                    <h3 className="font-display text-[15px] font-semibold text-[var(--foreground)]">
                       {selected.name}
                     </h3>
                     {selected.description && (

@@ -127,3 +127,17 @@ def test_session_list_command_uses_shared_store(monkeypatch) -> None:
     assert result.exit_code == 0, result.output
     assert "session-1" in result.output
     assert "Algebra" in result.output
+
+
+def test_start_command_delegates_to_runtime_launcher(monkeypatch) -> None:
+    calls: list[object] = []
+
+    def _fake_start(home=None):  # noqa: ANN001
+        calls.append(home)
+
+    monkeypatch.setattr("deeptutor.runtime.launcher.start", _fake_start)
+
+    result = runner.invoke(app, ["start"])
+
+    assert result.exit_code == 0, result.output
+    assert calls == [None]
