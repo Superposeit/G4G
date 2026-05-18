@@ -394,14 +394,10 @@ export default function SaveToNotebookModal({
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--primary)]">
               {t("Notebook Output")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="save-to-notebook-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Save to Notebook")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

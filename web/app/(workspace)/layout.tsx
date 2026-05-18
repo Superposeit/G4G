@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-"use client";
-
-=======
 import { Suspense } from "react";
 import MobileAppChrome from "@/components/mobile/MobileAppChrome";
 import MobileChromeFallback from "@/components/mobile/MobileChromeFallback";
->>>>>>> aa325de (feat: branding changes and mobile responsiveness)
 import WorkspaceSidebar from "@/components/sidebar/WorkspaceSidebar";
 import { UnifiedChatProvider } from "@/context/UnifiedChatContext";
 import { useAppShell } from "@/context/AppShellContext";
@@ -57,9 +52,6 @@ export default function WorkspaceLayout({
 }>) {
   return (
     <UnifiedChatProvider>
-<<<<<<< HEAD
-      <WorkspaceLayoutInner>{children}</WorkspaceLayoutInner>
-=======
       <div className="relative flex h-[100dvh] overflow-hidden md:h-screen">
         <Suspense fallback={<MobileChromeFallback />}>
           <MobileAppChrome />
@@ -71,7 +63,6 @@ export default function WorkspaceLayout({
           {children}
         </main>
       </div>
->>>>>>> aa325de (feat: branding changes and mobile responsiveness)
     </UnifiedChatProvider>
   );
 }

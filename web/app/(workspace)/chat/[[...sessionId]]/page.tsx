@@ -1567,21 +1567,6 @@ export default function ChatPage() {
       data-viewer-open={viewerPanelOpen ? "true" : "false"}
       className="chat-preview-shell flex h-full flex-col overflow-hidden bg-[var(--background)]"
     >
-<<<<<<< HEAD
-      <div className="mx-auto flex w-full max-w-[960px] items-center justify-between px-3 pt-3 pb-0 md:px-6">
-        <span className="shrink-0 text-[15px] font-semibold tracking-[-0.01em] text-[var(--foreground)]">
-          {t(activeCap.label)}
-        </span>
-        <div className="flex items-center gap-1.5 md:gap-2">
-          <button
-            onClick={() => setShowSaveModal(true)}
-            disabled={!chatSavePayload}
-            className="hidden shrink-0 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)] md:block"
-          >
-            {t("Save to Notebook")}
-          </button>
-          <button
-=======
       <div
         ref={headerRef}
         className="mx-auto flex w-full max-w-[960px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 pt-3 pb-0 md:px-6"
@@ -1599,24 +1584,11 @@ export default function ChatPage() {
           />
           <HeaderActionButton
             compact={headerCompact}
->>>>>>> 3d5c3a1 (improve chat)
             onClick={handleDownloadMarkdown}
             disabled={!state.messages.length}
             icon={Download}
             label={t("Download Markdown")}
             title={t("Download chat history as Markdown")}
-<<<<<<< HEAD
-            className="hidden shrink-0 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[var(--border)]/50 disabled:hover:text-[var(--muted-foreground)] md:block"
-          >
-            {t("Download Markdown")}
-          </button>
-          <button
-            onClick={handleNewChat}
-            className="shrink-0 rounded-lg border border-[var(--border)]/50 px-2 py-1.5 text-[12px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground)] md:px-3"
-          >
-            {t("New chat")}
-          </button>
-=======
           />
           <HeaderActionButton
             compact={headerCompact}
@@ -1640,12 +1612,8 @@ export default function ChatPage() {
             label={t("Viewer")}
             title={t("Open viewer")}
           />
->>>>>>> 3d5c3a1 (improve chat)
         </div>
       </div>
-<<<<<<< HEAD
-      <div className="mx-auto flex w-full max-w-[960px] flex-1 min-h-0 flex-col overflow-hidden px-3 md:px-6">
-=======
       <div
         className="mx-auto flex w-full max-w-[960px] min-h-0 flex-1 flex-col overflow-hidden px-4 md:px-6"
         style={
@@ -1656,7 +1624,6 @@ export default function ChatPage() {
             : undefined
         }
       >
->>>>>>> aa325de (feat: branding changes and mobile responsiveness)
         {!hasMessages ? (
           <div className="flex flex-1 min-h-0 flex-col items-center justify-center animate-fade-in">
             <div className="text-center">

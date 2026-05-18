@@ -129,14 +129,10 @@ export default function SkillsPicker({
               <Wand2 className="h-3 w-3" />
               {t("Skills Reference")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="skills-picker-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Select Skills")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

@@ -52,12 +52,6 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full max-w-sm">
-<<<<<<< HEAD
-      {/* Logo / Title */}
-      <div className="text-center mb-8">
-        <h1 className="font-display text-2xl font-semibold text-[var(--foreground)] tracking-tight">
-          DeepTutor
-=======
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--primary)]/22 bg-[var(--card)]/80 shadow-[0_12px_30px_rgba(8,19,54,0.16)]">
           <Image
@@ -72,7 +66,6 @@ export default function RegisterPage() {
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
           EducaT TutorRD
->>>>>>> f61abce (Add new SVG logos for Educat Tutor and update existing logo file)
         </h1>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           {t("Create your account")}

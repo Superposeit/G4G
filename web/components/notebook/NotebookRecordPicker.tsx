@@ -57,14 +57,10 @@ export default function NotebookRecordPicker({
               <Layers className="h-3 w-3" />
               {t("Notebook Reference")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="notebook-picker-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Select Notebook Records")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

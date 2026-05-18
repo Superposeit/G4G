@@ -86,14 +86,10 @@ export default function MemoryPicker({
               <Brain className="h-3 w-3" />
               {t("Memory Reference")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="memory-picker-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Select Memory")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

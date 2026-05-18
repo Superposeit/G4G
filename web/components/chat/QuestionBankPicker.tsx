@@ -144,14 +144,10 @@ export default function QuestionBankPicker({
               <ClipboardList className="h-3 w-3" />
               {t("Question Bank Reference")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="question-bank-picker-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Select Question Bank Entries")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

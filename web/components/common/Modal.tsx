@@ -145,14 +145,10 @@ export default function Modal({
         {/* Header */}
         {(hasTitle || showCloseButton) && (
           <div className="p-4 border-b border-[var(--border)] flex items-center justify-between shrink-0">
-<<<<<<< HEAD
-            <h3 className="font-display font-bold text-[var(--foreground)] flex items-center gap-2">
-=======
             <h3
               id={titleId}
               className="font-bold text-[var(--foreground)] flex items-center gap-2"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {titleIcon}
               {title}
             </h3>

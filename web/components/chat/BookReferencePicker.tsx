@@ -226,14 +226,10 @@ export default function BookReferencePicker({
               <BookOpen className="h-3 w-3" />
               {t("Book Reference")}
             </div>
-<<<<<<< HEAD
-            <h2 className="font-display text-lg font-semibold text-[var(--foreground)]">
-=======
             <h2
               id="book-picker-title"
               className="text-lg font-semibold text-[var(--foreground)]"
             >
->>>>>>> 1596807 (refactor chat capability & RAG pipeline(llamaindex))
               {t("Select Book Chapters")}
             </h2>
             <p className="mt-0.5 text-sm text-[var(--muted-foreground)]">

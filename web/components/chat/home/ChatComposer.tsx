@@ -387,11 +387,7 @@ export default memo(function ChatComposer({
   return (
     <div
       ref={composerRef}
-<<<<<<< HEAD
-      className={`relative z-20 mx-auto w-full shrink-0 pb-4 md:pb-5 ${hasMessages ? "pt-1" : ""}`}
-=======
       className={`relative z-20 mx-auto w-full shrink-0 pb-0 md:pb-5 ${hasMessages ? "pt-1" : ""}`}
->>>>>>> aa325de (feat: branding changes and mobile responsiveness)
     >
       {hasMessages && (
         <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-transparent to-[var(--background)]/72" />
@@ -605,26 +601,6 @@ export default memo(function ChatComposer({
 
           <div className="border-t border-[var(--border)]/35 px-3 py-2">
             <div className="flex items-center gap-2">
-<<<<<<< HEAD
-              {/* ---- Left: scrollable toolbar controls ---- */}
-              <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto scrollbar-none">
-              <button
-                ref={capBtnRef}
-                onClick={() => onSetCapMenuOpen((v) => !v)}
-                className={`inline-flex shrink-0 items-center gap-1.5 py-1.5 px-1 text-[12px] transition-colors ${
-                  capMenuOpen
-                    ? "text-[var(--foreground)]"
-                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
-              >
-                <CapIcon size={14} strokeWidth={1.6} />
-                <span className="font-medium">{t(activeCap.label)}</span>
-                <ChevronDown
-                  size={11}
-                  className={`transition-transform ${capMenuOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-=======
               <div className="relative">
                 <button
                   ref={capBtnRef}
@@ -660,7 +636,6 @@ export default memo(function ChatComposer({
                     className={`-mr-0.5 shrink-0 transition-transform duration-200 ${capMenuOpen ? "rotate-180" : ""}`}
                   />
                 </button>
->>>>>>> 3d5c3a1 (improve chat)
 
                 {capMenuOpen && (
                   <div
@@ -1017,39 +992,7 @@ export default memo(function ChatComposer({
                   onChange={onSelectLLM}
                 />
 
-<<<<<<< HEAD
-                <select
-                  value={stateKnowledgeBase}
-                  onChange={(e) => onSetKB(e.target.value)}
-                  disabled={!ragActive}
-                  title={
-                    ragActive
-                      ? t("Select Knowledge Base")
-                      : t("Enable Knowledge Base source first")
-                  }
-                  className={`hidden h-[28px] appearance-none rounded-full border bg-transparent py-0 pl-2.5 pr-5 text-[11px] outline-none transition-colors md:inline-block ${
-                    ragActive
-                      ? "cursor-pointer border-[var(--border)]/40 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:text-[var(--foreground)]"
-                      : "cursor-not-allowed border-transparent text-[var(--border)]"
-                  }`}
-                  style={{
-                    backgroundImage: ragActive
-                      ? "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")"
-                      : "none",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 6px center",
-                  }}
-                >
-                  <option value="">{ragActive ? t("No KB") : "—"}</option>
-                  {knowledgeBases.map((kb) => (
-                    <option key={kb.name} value={kb.name}>
-                      {kb.name}
-                    </option>
-                  ))}
-                </select>
 
-=======
->>>>>>> 3d5c3a1 (improve chat)
                 {isStreaming ? (
                   <button
                     type="button"
