@@ -11,6 +11,8 @@ import {
   escapeUnknownHtmlTagsForDisplay,
   normalizeMarkdownForDisplay,
 } from "@/lib/markdown-display";
+import { parseGraphSpec } from "@/lib/graph-spec";
+import FunctionGraph from "./FunctionGraph";
 import type { MarkdownRendererProps } from "./MarkdownRenderer";
 
 function MermaidLoading() {
@@ -435,6 +437,21 @@ export default function RichMarkdownRenderer({
             <LazyMermaid chart={raw} className={gap} />
           </div>
         );
+      }
+
+      // Deterministic math graphs: the model emits a JSON `GraphSpec` in a
+      // ```graph block and we draw it with a dependency-free SVG. If the spec
+      // is malformed we fall through and render the raw block so the message is
+      // never broken.
+      if (lang === "graph") {
+        const parsed = parseGraphSpec(raw);
+        if ("spec" in parsed) {
+          return (
+            <div {...lineProps}>
+              <FunctionGraph spec={parsed.spec} />
+            </div>
+          );
+        }
       }
 
       // Route every multi-line block through the rich code block so the

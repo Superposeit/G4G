@@ -18,8 +18,16 @@ export function convertLatexDelimiters(content: string): string {
 
   let result = content;
 
+  // IMPORTANT: we only ever convert explicit LaTeX delimiters \(...\) and
+  // \[...\] (plus the nested $$ \(...\) $$ form below). We deliberately never
+  // treat a *bare* `$` as math. Prices like "it costs $5 and $10" must pass
+  // through untouched instead of being turned into a math span — introducing
+  // `$$` here would create currency false positives. Genuine single-`$` math
+  // is left for remark-math to decide, exactly as before.
+
   // editor.md examples sometimes wrap \( ... \) inside $$ ... $$.
   // In that case the inner delimiters should be stripped rather than rewrapped.
+  // This collapses `$$ \( ... \) $$` down to a single `$$...$$` block.
   result = result.replace(
     /\$\$\s*\\\(([\s\S]*?)\\\)\s*\$\$/g,
     (_match, expr) => {
