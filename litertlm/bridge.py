@@ -53,7 +53,18 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-from litertlm.engines import EngineSupervisor, LiteRTEngine  # noqa: E402
+try:
+    # Normal repo layout: ``<repo>/litertlm/bridge.py`` — the parent directory
+    # is named ``litertlm`` so the package import resolves.
+    from litertlm.engines import EngineSupervisor, LiteRTEngine  # noqa: E402
+except ModuleNotFoundError:
+    # Container layout: docker-compose mounts ``./litertlm`` as ``/app``, so this
+    # file's own directory holds the package contents but is not named
+    # ``litertlm`` — ``import litertlm`` cannot resolve. Fall back to importing
+    # the engines sub-package directly (its internal imports are relative, so it
+    # works as a standalone top-level package).
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from engines import EngineSupervisor, LiteRTEngine  # noqa: E402
 
 # --- Configuration ---
 
