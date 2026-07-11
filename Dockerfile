@@ -150,6 +150,10 @@ COPY --from=frontend-builder /app/web/public/ ./web/public/
 COPY deeptutor/ ./deeptutor/
 COPY deeptutor_cli/ ./deeptutor_cli/
 COPY scripts/ ./scripts/
+# litertlm/ is required at runtime: deeptutor/api/routers/litertlm.py imports
+# ``litertlm.engines.tiers`` at module load, so the backend will not boot
+# without it present on the import path.
+COPY litertlm/ ./litertlm/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
