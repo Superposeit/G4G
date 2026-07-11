@@ -27,6 +27,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
 from deeptutor.services.config.model_catalog import get_model_catalog_service
+from litertlm.engines import tiers as engine_tiers
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -62,6 +63,8 @@ _KNOWN_MODEL_META: Dict[str, Dict[str, Any]] = {
         "min_ram_gb": 3,
         "tags_extra": ["mobile", "lightweight"],
         "description": "Gemma 4 E2B – 2.3B params, optimized for mobile devices",
+        "artifact_type": "chat",
+        "format": "litertlm",
     },
     "gemma-4-E4B-it-litert-lm": {
         "size_gb": 2.8,
@@ -70,6 +73,8 @@ _KNOWN_MODEL_META: Dict[str, Dict[str, Any]] = {
         "min_ram_gb": 6,
         "tags_extra": ["desktop", "balanced"],
         "description": "Gemma 4 E4B – 4.5B params, for laptops and desktops",
+        "artifact_type": "chat",
+        "format": "litertlm",
     },
     "Gemma3-1B-IT": {
         "size_gb": 0.6,
@@ -201,6 +206,8 @@ _DEFAULT_META = {
     "min_ram_gb": 2,
     "tags_extra": [],
     "description": "",
+    "artifact_type": "chat",
+    "format": "litertlm",
 }
 
 # --- Pydantic Models ---
@@ -233,6 +240,10 @@ class ModelInfo(BaseModel):
     tags: List[str]
     downloads: int = 0
     likes: int = 0
+    # Engine-manager metadata (additive): which kind of artifact this is and the
+    # on-disk model format. Catalog models are LiteRT-LM chat models by default.
+    artifact_type: str = "chat"  # "chat" | "mmproj" | "asr" | "embedding"
+    format: str = "litertlm"  # "gguf" | "litertlm"
 
 
 class DownloadedModelInfo(BaseModel):
@@ -285,6 +296,19 @@ class DownloadProgress(BaseModel):
 
 class TokenRequest(BaseModel):
     token: str
+
+
+class TierRecommendation(BaseModel):
+    """Hardware-tier engine/model recommendation (see litertlm.engines.tiers)."""
+
+    tier: str
+    engine: Optional[str] = None
+    chat_model: Optional[str] = None
+    quant: Optional[str] = None
+    format: Optional[str] = None
+    enable_vision: bool
+    asr_model: str
+    reason: str
 
 
 # --- Hardware Detection ---
@@ -506,6 +530,8 @@ def _hf_to_model_info(hf_model: Dict[str, Any]) -> ModelInfo:
         tags=combined_tags,
         downloads=hf_model.get("downloads", 0),
         likes=hf_model.get("likes", 0),
+        artifact_type=meta.get("artifact_type", _DEFAULT_META["artifact_type"]),
+        format=meta.get("format", _DEFAULT_META["format"]),
     )
 
 
@@ -516,6 +542,23 @@ def _hf_to_model_info(hf_model: Dict[str, Any]) -> ModelInfo:
 async def get_hardware():
     """Get system hardware specifications."""
     return get_hardware_specs()
+
+
+@router.get("/recommendation", response_model=TierRecommendation)
+async def get_recommendation():
+    """Recommend an engine/model plan for this machine's hardware tier."""
+    hardware = get_hardware_specs()
+    plan = engine_tiers.recommend(hardware)
+    return TierRecommendation(
+        tier=plan.tier,
+        engine=plan.engine,
+        chat_model=plan.chat_model,
+        quant=plan.quant,
+        format=plan.format,
+        enable_vision=plan.enable_vision,
+        asr_model=plan.asr_model,
+        reason=plan.reason,
+    )
 
 
 @router.get("/models/available", response_model=List[ModelWithCompatibility])

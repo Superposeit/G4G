@@ -32,24 +32,32 @@ limitations in litert-lm-nightly. The bridge supports text-only inference.
 """
 
 import os
+import sys
 import logging
 import json
 import re
 import threading
 import time
-from typing import Any, Dict, List, Generator, Optional
+from typing import Any, Dict, Generator, List, Optional, Union
 
-import litert_lm
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import uvicorn
+
+# Resolve project root relative to this file (litertlm/bridge.py → project root)
+# and ensure it is importable so ``litertlm.engines`` resolves both when this
+# file runs as a script (``uv run bridge.py``) and when imported as a module.
+# NOTE: ``litert_lm`` is intentionally NOT imported here — it is loaded lazily
+# inside the engine's ``start()`` so this module imports without the library.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+from litertlm.engines import EngineSupervisor, LiteRTEngine  # noqa: E402
 
 # --- Configuration ---
 
-# Resolve project root relative to this file (litertlm/bridge.py → project root).
 # Run `python scripts/download_litertlm_model.py` to populate the default path.
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DEFAULT_MODEL_PATH = os.path.join(
     _PROJECT_ROOT, "data", "models", "gemma-4-E2B-it.litertlm"
 )
@@ -72,45 +80,40 @@ logging.basicConfig(
 )
 logger = logging.getLogger("litertlm-bridge")
 
-# --- Model Initialization ---
+# --- Engine Manager ---
 
-# Global engine instance (lazy loaded)
-_engine: Optional[Any] = None
+# Global supervisor instance (lazy loaded). Owns the active chat engine plus any
+# optional ASR / embedding engines.
+_supervisor: Optional[EngineSupervisor] = None
 _engine_lock = threading.Lock()
-# Request lock to ensure only one conversation session exists at a time (LiteRT limitation)
-_request_lock = threading.Lock()
 
 
-def get_engine() -> Any:
-    """Get or create the LiteRT-LM engine instance (lazy loading)."""
-    global _engine
+def get_supervisor() -> EngineSupervisor:
+    """Get or create the :class:`EngineSupervisor` (lazy).
 
-    if _engine is not None:
-        return _engine
+    The default configuration preserves the historical bridge behaviour: an
+    in-process, text-only LiteRT-LM chat engine and no auxiliary engines
+    (endpoints that need ASR/embeddings return 503 until one is configured).
+    Heavy work — importing ``litert_lm`` and loading the model — happens inside
+    the engine's ``start()``, driven on first use. Tests replace this module
+    global with a fake so no real engine is ever constructed.
+    """
+    global _supervisor
+
+    if _supervisor is not None:
+        return _supervisor
 
     with _engine_lock:
         # Double-check after acquiring lock
-        if _engine is not None:
-            return _engine
+        if _supervisor is not None:
+            return _supervisor
 
-        logger.info(f"Loading model from: {_current_model_path}")
-
-        if not os.path.exists(_current_model_path):
-            raise FileNotFoundError(
-                f"Model file not found at {_current_model_path}. "
-                f"Run 'python scripts/download_litertlm_model.py' to download the model."
-            )
-
-        try:
-            # Initialize Engine (text-only for now)
-            # Note: Vision and audio backends disabled due to signature limitation
-            # in current litert-lm-nightly version
-            _engine = litert_lm.Engine(_current_model_path)
-            logger.info("Model loaded successfully")
-            return _engine
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
-            raise
+        logger.info(f"Configuring engine manager (default model: {_current_model_path})")
+        chat_engine = LiteRTEngine(
+            model_path=_current_model_path, model_id=_current_model_id
+        )
+        _supervisor = EngineSupervisor(tier="lite", chat_engine=chat_engine)
+        return _supervisor
 
 
 # --- FastAPI App ---
@@ -196,13 +199,18 @@ async def root() -> Dict[str, str]:
 async def health_check() -> Dict[str, str]:
     """Health check endpoint."""
     try:
-        # Try to get engine to verify it's loaded
-        engine = get_engine()
+        # Ensure the chat engine is started and ready.
+        supervisor = get_supervisor()
+        engine = supervisor.get_chat_engine()
+        if engine is None or not engine.health():
+            raise RuntimeError("Chat engine is not ready")
         return {
             "status": "healthy",
             "model": _current_model_id,
             "model_path": _current_model_path
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
@@ -214,32 +222,35 @@ class SetModelRequest(BaseModel):
 
 @app.post("/v1/models/active")
 async def set_active_model(request: SetModelRequest) -> Dict[str, str]:
-    """Change the active model dynamically without restarting."""
-    global _engine, _current_model_id, _current_model_path
-    
+    """Change the active chat model dynamically without restarting."""
+    global _current_model_id, _current_model_path
+
+    if not os.path.exists(request.model_path):
+        raise HTTPException(status_code=404, detail="Model file not found")
+
+    # Resolve the supervisor outside the lock (it manages its own locking).
+    supervisor = get_supervisor()
+
     with _engine_lock:
-        if not os.path.exists(request.model_path):
-            raise HTTPException(status_code=404, detail="Model file not found")
-            
         try:
             logger.info(f"Switching model to: {request.model_path}")
-            # Unload old engine if exists
-            _engine = None
-            
-            # Update paths and id
             _current_model_path = request.model_path
             _current_model_id = request.model_id
-            
-            # Load new engine
-            _engine = litert_lm.Engine(_current_model_path)
-            
+
+            # Hot-swap: stop the old chat engine and start a fresh LiteRT engine.
+            new_engine = LiteRTEngine(
+                model_path=_current_model_path, model_id=_current_model_id
+            )
+            supervisor.swap_chat_engine(new_engine)
+
             return {
-                "status": "success", 
+                "status": "success",
                 "message": f"Successfully switched to model {request.model_id}"
             }
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"Failed to switch model: {e}")
-            _engine = None  # Clear broken state
             raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -263,84 +274,48 @@ async def chat_completions(request: Request) -> StreamingResponse:
 
         logger.debug(f"Received request with {len(messages)} messages")
 
-        # 1. Prepare History (OpenAI format to LiteRT format)
-        # We pass all but the last message as context
-        history = []
-        for m in messages[:-1]:
-            content = m["content"]
-            # If content is a string, use it directly
-            # If it's a list, check if it's text-only
-            if isinstance(content, str):
-                history.append({"role": m["role"], "content": content})
-            elif isinstance(content, list):
-                # Check if it's text-only (single text part)
-                if len(content) == 1 and content[0]["type"] == "text":
-                    history.append({"role": m["role"], "content": content[0]["text"]})
-                else:
-                    # Multimodal - convert to LiteRT format
-                    history.append({"role": m["role"], "content": parse_multimodal_content(content)})
-            else:
-                history.append({"role": m["role"], "content": str(content)})
-
-        # 2. Prepare Current Prompt
-        last_content = messages[-1]["content"]
-        if isinstance(last_content, str):
-            user_message = last_content
-        elif isinstance(last_content, list):
-            if len(last_content) == 1 and last_content[0]["type"] == "text":
-                user_message = last_content[0]["text"]
-            else:
-                # Extract text from multimodal content
-                user_message = ""
-                for item in last_content:
-                    if item["type"] == "text":
-                        user_message += item["text"]
-        else:
-            user_message = str(last_content)
+        # Forward optional OpenAI generation parameters to the active engine.
+        # Message-format handling (history/multimodal) is owned by the engine so
+        # the bridge stays engine-agnostic across LiteRT and llama.cpp.
+        opts = {
+            k: body[k]
+            for k in ("temperature", "top_p", "top_k", "max_tokens", "stop", "seed")
+            if k in body
+        }
 
         def generate_stream() -> Generator[str, None, None]:
-            """Generate streaming response using LiteRT-LM."""
+            """Stream the active engine's output as OpenAI-compatible SSE chunks."""
             try:
-                engine = get_engine()
+                supervisor = get_supervisor()
+                engine = supervisor.get_chat_engine()
+                if engine is None:
+                    raise RuntimeError("No chat engine is configured on this node")
 
-                # Use the lock to prevent 'FAILED_PRECONDITION: A session already exists'
-                with _request_lock:
-                    logger.debug("Acquired request lock, starting generation")
+                for text in engine.chat(messages, **opts):
+                    if text:
+                        data = {
+                            "id": f"chatcmpl-{int(time.time())}",
+                            "object": "chat.completion.chunk",
+                            "model": _current_model_id,
+                            "choices": [{
+                                "delta": {"content": text},
+                                "finish_reason": None,
+                                "index": 0
+                            }]
+                        }
+                        yield format_sse_chunk(data)
 
-                    # Create conversation with history context
-                    with engine.create_conversation(messages=history) as conversation:
-                        for chunk in conversation.send_message_async(user_message):
+                # Final stop signal to tell the UI the model is done
+                stop_data = {
+                    "id": f"chatcmpl-{int(time.time())}",
+                    "object": "chat.completion.chunk",
+                    "model": _current_model_id,
+                    "choices": [{"delta": {}, "finish_reason": "stop", "index": 0}]
+                }
+                yield format_sse_chunk(stop_data)
+                yield "data: [DONE]\n\n"
 
-                            # Extract text from the LiteRT content array
-                            content = ""
-                            for item in chunk.get("content", []):
-                                if item.get("type") == "text":
-                                    content += item.get("text", "")
-
-                            if content:
-                                data = {
-                                    "id": f"chatcmpl-{int(time.time())}",
-                                    "object": "chat.completion.chunk",
-                                    "model": _current_model_id,
-                                    "choices": [{
-                                        "delta": {"content": content},
-                                        "finish_reason": None,
-                                        "index": 0
-                                    }]
-                                }
-                                yield format_sse_chunk(data)
-
-                    # Final stop signal to tell the UI the model is done
-                    stop_data = {
-                        "id": f"chatcmpl-{int(time.time())}",
-                        "object": "chat.completion.chunk",
-                        "model": _current_model_id,
-                        "choices": [{"delta": {}, "finish_reason": "stop", "index": 0}]
-                    }
-                    yield format_sse_chunk(stop_data)
-                    yield "data: [DONE]\n\n"
-
-                    logger.debug("Generation completed successfully")
+                logger.debug("Generation completed successfully")
 
             except FileNotFoundError as e:
                 logger.error(f"Model file not found: {e}")
@@ -361,6 +336,8 @@ async def chat_completions(request: Request) -> StreamingResponse:
             }
         )
 
+    except HTTPException:
+        raise
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in request: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON in request body")
@@ -369,9 +346,78 @@ async def chat_completions(request: Request) -> StreamingResponse:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class EmbeddingsRequest(BaseModel):
+    input: Union[str, List[str]]
+    model: Optional[str] = None
+
+
+@app.post("/v1/embeddings")
+async def create_embeddings(request: EmbeddingsRequest) -> Dict[str, Any]:
+    """OpenAI-compatible embeddings endpoint.
+
+    Delegates to the supervisor's embedding engine. Returns 503 when no
+    embedding-capable engine is loaded on this node.
+    """
+    supervisor = get_supervisor()
+    engine = supervisor.get_embedding_engine()
+    if engine is None:
+        raise HTTPException(
+            status_code=503,
+            detail="No embedding engine is loaded on this node."
+        )
+
+    texts = [request.input] if isinstance(request.input, str) else list(request.input)
+    try:
+        vectors = engine.embed(texts)
+    except NotImplementedError:
+        raise HTTPException(
+            status_code=503,
+            detail="The active engine does not support embeddings."
+        )
+
+    return {
+        "object": "list",
+        "data": [
+            {"object": "embedding", "index": i, "embedding": vector}
+            for i, vector in enumerate(vectors)
+        ],
+        "model": request.model or _current_model_id,
+        "usage": {"prompt_tokens": 0, "total_tokens": 0},
+    }
+
+
+@app.post("/v1/audio/transcriptions")
+async def create_transcription(request: Request) -> Dict[str, str]:
+    """OpenAI-compatible audio transcription endpoint.
+
+    Delegates to the supervisor's ASR engine. Returns a clear 503 when no ASR
+    engine is loaded on this node.
+    """
+    supervisor = get_supervisor()
+    engine = supervisor.get_asr_engine()
+    if engine is None:
+        raise HTTPException(
+            status_code=503,
+            detail="No ASR engine is loaded on this node."
+        )
+
+    audio = await request.body()
+    try:
+        text = engine.transcribe(audio)
+    except NotImplementedError:
+        raise HTTPException(
+            status_code=503,
+            detail="The active engine does not support audio transcription."
+        )
+
+    return {"text": text}
+
+
 # --- Main Entry Point ---
 
 if __name__ == "__main__":
+    import uvicorn
+
     logger.info(f"🚀 LiteRT Multimodal Bridge starting on http://{HOST}:{PORT}")
     logger.info(f"   Model: {_current_model_id}")
     logger.info(f"   Model path: {_current_model_path}")
