@@ -43,6 +43,10 @@ services:
       - LITERTLM_PORT=8000
       - LITERTLM_MODEL_ID=gemma-4-E2B-it
       - LITERTLM_LOG_LEVEL=INFO
+      # Default model auto-downloads on first boot (see litertlm/start.sh).
+      # Override the source or pass a token for gated repos if needed.
+      - LITERTLM_REPO=${LITERTLM_REPO:-litert-community/gemma-4-E2B-it-litert-lm}
+      - HF_TOKEN=${HF_TOKEN:-}
     command: >
       sh -c "
         apt-get update -qq && apt-get install -y --no-install-recommends curl &&
