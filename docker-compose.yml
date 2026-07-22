@@ -45,7 +45,7 @@ services:
       - LITERTLM_LOG_LEVEL=INFO
     command: >
       sh -c "
-        apt-get update -qq && apt-get install -y --no-install-recommends curl &&
+        apt-get update -qq && apt-get install -y --no-install-recommends curl libvulkan1 &&
         chmod +x /app/start.sh &&
         /app/start.sh
       "
